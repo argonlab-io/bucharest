@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
 
-  build:
+  coverage:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -22,4 +22,4 @@ jobs:
         chmod +x ./cc-test-reporter
         ./cc-test-reporter before-build
         go test ./... -coverprofile=c.out
-        ./cc-test-reporter after-build
+        ./cc-test-reporter after-build --prefix github.com/argonlab-io/bucharest
