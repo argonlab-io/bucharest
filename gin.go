@@ -515,6 +515,7 @@ func (h *httpContextWithGin) Gin() *gin.Context {
 
 func GinLoggerWithConfig(ctx HTTPContext, data Map) HTTPError {
 	var conf gin.LoggerConfig
+	var logLevelFromGinParam LogLevelFromGinParam
 	if data["conf"] == nil {
 		conf = gin.LoggerConfig{}
 	} else {
@@ -522,6 +523,10 @@ func GinLoggerWithConfig(ctx HTTPContext, data Map) HTTPError {
 	}
 
 	formatter := conf.Formatter
+	logLevelFromGinParam, ok := data["logLevel"].(LogLevelFromGinParam)
+	if !ok {
+		logLevelFromGinParam = nil
+	}
 
 	out := conf.Output
 	if out == nil {
@@ -573,34 +578,41 @@ func GinLoggerWithConfig(ctx HTTPContext, data Map) HTTPError {
 		param.Path = path
 
 		ctx.Log().Out = out
-		if formatter != nil {
-			ctx.Log().Info(formatter(param))
+		if formatter != nil && logLevelFromGinParam != nil {
+			ctx.Log().Log(logLevelFromGinParam(&param), formatter(param))
+		} else {
+			logWithDefaultFormatter(ctx, &param)
 		}
 
-		var statusColor, methodColor, resetColor string
-		if ctx.Log().Formatter.(*logrus.TextFormatter).ForceColors {
-			statusColor = param.StatusCodeColor()
-			methodColor = param.MethodColor()
-			resetColor = param.ResetColor()
-		}
-
-		if param.Latency > time.Minute {
-			param.Latency = param.Latency - param.Latency%time.Second
-		}
-
-		logLevel := logrus.InfoLevel
-		if param.StatusCode >= 500 {
-			logLevel = logrus.ErrorLevel
-		}
-		ctx.Log().Logf(logLevel, "[GIN]| %s %3d %s| %13v | %15s |%s %-7s %s %#v\n%s",
-			statusColor, param.StatusCode, resetColor,
-			param.Latency,
-			param.ClientIP,
-			methodColor, param.Method, resetColor,
-			param.Path,
-			param.ErrorMessage,
-		)
 	}
 
 	return nil
+}
+
+type LogLevelFromGinParam func(*gin.LogFormatterParams) logrus.Level
+
+func logWithDefaultFormatter(ctx Context, param *gin.LogFormatterParams) {
+	var statusColor, methodColor, resetColor string
+	if ctx.Log().Formatter.(*logrus.TextFormatter).ForceColors {
+		statusColor = param.StatusCodeColor()
+		methodColor = param.MethodColor()
+		resetColor = param.ResetColor()
+	}
+
+	if param.Latency > time.Minute {
+		param.Latency = param.Latency - param.Latency%time.Second
+	}
+
+	logLevel := logrus.InfoLevel
+	if param.StatusCode >= 500 {
+		logLevel = logrus.ErrorLevel
+	}
+	ctx.Log().Logf(logLevel, "[GIN]| %s %3d %s| %13v | %15s |%s %-7s %s %#v\n%s",
+		statusColor, param.StatusCode, resetColor,
+		param.Latency,
+		param.ClientIP,
+		methodColor, param.Method, resetColor,
+		param.Path,
+		param.ErrorMessage,
+	)
 }
