@@ -31,6 +31,18 @@ func Base64URLStringDecode(s string) ([]byte, error) {
 	return b, err
 }
 
+func Base64URLStringBulkDecode(s ...string) ([][]byte, error) {
+	bs := make([][]byte, 0)
+	for _, value := range s {
+		b, err := Base64URLStringDecode(value)
+		if err != nil {
+			return nil, err
+		}
+		bs = append(bs, b)
+	}
+	return bs, nil
+}
+
 func Base64StringDecodeToString(s string) (string, error) {
 	b, err := Base64StringDecode(s)
 	return string(b), err

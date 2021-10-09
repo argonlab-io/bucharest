@@ -29,13 +29,11 @@ var DefaultArgon2HashingParams = &Argon2HashingParam{
 	keyLength:   32,
 }
 
-// HashPassword function generates salted and hashed password, returns password (string) and error.
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	return string(bytes), err
 }
 
-// CheckPasswordHash function compares raw password and hash password, returns validiation status (bool).
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
@@ -76,37 +74,43 @@ func CheckPasswordHashWithArgon2(password, encodedHash string) (match bool, err 
 	return false, nil
 }
 
-func getArgon2Params(encodedHash string) (p *Argon2HashingParam, salt, hash []byte, err error) {
+func splitHashArgon2(encodedHash string) ([]string, error) {
 	vals := strings.Split(encodedHash, "$")
 	if len(vals) != 6 {
-		return nil, nil, nil, ErrInvalidHash
+		return vals, ErrInvalidHash
 	}
 
 	var version int
-	_, err = fmt.Sscanf(vals[2], "v=%d", &version)
+	_, err := fmt.Sscanf(vals[2], "v=%d", &version)
+	if err != nil {
+		return nil, err
+	}
+	if version != argon2.Version {
+		return nil, ErrIncompatibleVersion
+	}
+
+	return vals, nil
+}
+
+func getArgon2Params(encodedHash string) (p *Argon2HashingParam, salt, hash []byte, err error) {
+	vals, err := splitHashArgon2(encodedHash)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	if version != argon2.Version {
-		return nil, nil, nil, ErrIncompatibleVersion
-	}
-
 	p = &Argon2HashingParam{}
 	_, err = fmt.Sscanf(vals[3], "m=%d,t=%d,p=%d", &p.memory, &p.iterations, &p.parallelism)
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	salt, err = Base64URLStringDecode(vals[4])
+	bs, err := Base64URLStringBulkDecode(vals[4], vals[5])
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	salt = bs[0]
 	p.saltLength = uint32(len(salt))
 
-	hash, err = Base64URLStringDecode(vals[5])
-	if err != nil {
-		return nil, nil, nil, err
-	}
+	hash = bs[1]
 	p.keyLength = uint32(len(hash))
 
 	return p, salt, hash, nil
