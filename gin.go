@@ -19,6 +19,9 @@ func NewGinHandlerFunc(ctx Context, handlerFunc HandlerFunc) gin.HandlerFunc {
 		httpError := handlerFunc(&httpContextWithGin{
 			Context:            ctx,
 			gin:                g,
+			ginHandlerInfo:     ginHandlerInfo{gin: g},
+			ginRequest:         ginRequest{gin: g},
+			ginHandlerControl:  ginHandlerControl{gin: g},
 			ginSetterAndGetter: ginSetterAndGetter{gin: g},
 		})
 		if httpError != nil {
@@ -32,6 +35,9 @@ func NewGinHandlerFuncWithData(ctx Context, handlerFunc HandlerFuncWithData, dat
 		httpError := handlerFunc(&httpContextWithGin{
 			Context:            ctx,
 			gin:                g,
+			ginHandlerInfo:     ginHandlerInfo{gin: g},
+			ginRequest:         ginRequest{gin: g},
+			ginHandlerControl:  ginHandlerControl{gin: g},
 			ginSetterAndGetter: ginSetterAndGetter{gin: g},
 		}, data)
 		if httpError != nil {
@@ -43,39 +49,82 @@ func NewGinHandlerFuncWithData(ctx Context, handlerFunc HandlerFuncWithData, dat
 type httpContextWithGin struct {
 	Context
 	gin *gin.Context
+	ginHandlerInfo
+	ginRequest
+	ginHandlerControl
 	ginSetterAndGetter
 }
 
-func (h *httpContextWithGin) HandlerName() string {
-	return h.gin.HandlerName()
+type ginHandlerInfo struct {
+	gin *gin.Context
 }
 
-func (h *httpContextWithGin) HandlerNames() []string {
-	return h.gin.HandlerNames()
+func (hi *ginHandlerInfo) HandlerName() string {
+	return hi.gin.HandlerName()
 }
 
-func (h *httpContextWithGin) FullPath() string {
-	return h.gin.FullPath()
+func (hi *ginHandlerInfo) HandlerNames() []string {
+	return hi.gin.HandlerNames()
 }
 
-func (h *httpContextWithGin) Next() {
-	h.gin.Next()
+type ginRequest struct {
+	gin *gin.Context
 }
 
-func (h *httpContextWithGin) IsAborted() bool {
-	return h.gin.IsAborted()
+func (r *ginRequest) FullPath() string {
+	return r.gin.FullPath()
 }
 
-func (h *httpContextWithGin) Abort() {
-	h.gin.Abort()
+func (r *ginRequest) ClientIP() string {
+	return r.gin.ClientIP()
 }
 
-func (h *httpContextWithGin) AbortWithStatusJSON(code int, jsonObj interface{}) {
-	h.gin.AbortWithStatusJSON(code, jsonObj)
+func (r *ginRequest) RemoteIP() (net.IP, bool) {
+	return r.gin.RemoteIP()
 }
 
-func (h *httpContextWithGin) AbortWithStatus(code int) {
-	h.gin.AbortWithStatus(code)
+func (r *ginRequest) Cookie(name string) (string, error) {
+	return r.gin.Cookie(name)
+}
+
+func (r *ginRequest) ContentType() string {
+	return r.gin.ContentType()
+}
+
+func (r *ginRequest) GetHeader(key string) string {
+	return r.gin.GetHeader(key)
+}
+
+func (r *ginRequest) GetRawData() ([]byte, error) {
+	return r.gin.GetRawData()
+}
+
+func (r *ginRequest) IsWebsocket() bool {
+	return r.gin.IsWebsocket()
+}
+
+type ginHandlerControl struct {
+	gin *gin.Context
+}
+
+func (hc *ginHandlerControl) Next() {
+	hc.gin.Next()
+}
+
+func (hc *ginHandlerControl) IsAborted() bool {
+	return hc.gin.IsAborted()
+}
+
+func (hc *ginHandlerControl) Abort() {
+	hc.gin.Abort()
+}
+
+func (hc *ginHandlerControl) AbortWithStatusJSON(code int, jsonObj interface{}) {
+	hc.gin.AbortWithStatusJSON(code, jsonObj)
+}
+
+func (hc *ginHandlerControl) AbortWithStatus(code int) {
+	hc.gin.AbortWithStatus(code)
 }
 
 type ginSetterAndGetter struct {
@@ -286,22 +335,6 @@ func (h *httpContextWithGin) ShouldBindBodyWith(obj interface{}, bb binding.Bind
 	return h.gin.ShouldBindBodyWith(obj, bb)
 }
 
-func (h *httpContextWithGin) ClientIP() string {
-	return h.gin.ClientIP()
-}
-
-func (h *httpContextWithGin) RemoteIP() (net.IP, bool) {
-	return h.gin.RemoteIP()
-}
-
-func (h *httpContextWithGin) ContentType() string {
-	return h.gin.ContentType()
-}
-
-func (h *httpContextWithGin) IsWebsocket() bool {
-	return h.gin.IsWebsocket()
-}
-
 func (h *httpContextWithGin) Status(code int) {
 	h.gin.Status(code)
 }
@@ -310,24 +343,12 @@ func (h *httpContextWithGin) Header(key, value string) {
 	h.gin.Header(key, value)
 }
 
-func (h *httpContextWithGin) GetHeader(key string) string {
-	return h.gin.GetHeader(key)
-}
-
-func (h *httpContextWithGin) GetRawData() ([]byte, error) {
-	return h.gin.GetRawData()
-}
-
 func (h *httpContextWithGin) SetSameSite(samesite http.SameSite) {
 	h.gin.SetSameSite(samesite)
 }
 
 func (h *httpContextWithGin) SetCookie(name, value string, maxAge int, path, domain string, secure, httpOnly bool) {
 	h.gin.SetCookie(name, value, maxAge, path, domain, secure, httpOnly)
-}
-
-func (h *httpContextWithGin) Cookie(name string) (string, error) {
-	return h.gin.Cookie(name)
 }
 
 func (h *httpContextWithGin) Render(code int, r render.Render) {

@@ -14,14 +14,28 @@ import (
 
 type HTTPContext interface {
 	Context
+	// Handler info
 	HandlerName() string
 	HandlerNames() []string
+
+	// request
 	FullPath() string
+	ContentType() string
+	Cookie(name string) (string, error)
+	ClientIP() string
+	RemoteIP() (net.IP, bool)
+	GetHeader(key string) string
+	GetRawData() ([]byte, error)
+	IsWebsocket() bool
+
+	// handler control
 	Next()
 	IsAborted() bool
 	Abort()
 	AbortWithStatusJSON(code int, jsonObj interface{})
 	AbortWithStatus(code int)
+
+	// Setter and Getter
 	Get(key string) (interface{}, bool)
 	Set(key string, value interface{})
 	MustGet(key string) interface{}
@@ -38,6 +52,8 @@ type HTTPContext interface {
 	GetStringMap(key string) (sm map[string]interface{})
 	GetStringMapString(key string) (sms map[string]string)
 	GetStringMapStringSlice(key string) (smss map[string][]string)
+
+	// pathParamter
 	Param(key string) string
 	Query(key string) string
 	DefaultQuery(key, defaultValue string) string
@@ -53,9 +69,13 @@ type HTTPContext interface {
 	GetPostFormArray(key string) ([]string, bool)
 	PostFormMap(key string) map[string]string
 	GetPostFormMap(key string) (map[string]string, bool)
+
+	// multipartFile
 	FormFile(name string) (*multipart.FileHeader, error)
 	MultipartForm() (*multipart.Form, error)
 	SaveUploadedFile(file *multipart.FileHeader, dst string) error
+
+	// binder
 	Bind(obj interface{}) error
 	BindJSON(obj interface{}) error
 	BindXML(obj interface{}) error
@@ -73,17 +93,15 @@ type HTTPContext interface {
 	ShouldBindUri(obj interface{}) error
 	ShouldBindWith(obj interface{}, b binding.Binding) error
 	ShouldBindBodyWith(obj interface{}, bb binding.BindingBody) (err error)
-	ClientIP() string
-	RemoteIP() (net.IP, bool)
-	ContentType() string
-	IsWebsocket() bool
+
+	// response header
 	Status(code int)
 	Header(key, value string)
-	GetHeader(key string) string
-	GetRawData() ([]byte, error)
 	SetSameSite(samesite http.SameSite)
 	SetCookie(name, value string, maxAge int, path, domain string, secure, httpOnly bool)
-	Cookie(name string) (string, error)
+	SetAccepted(formats ...string)
+
+	// response body
 	Render(code int, r render.Render)
 	HTML(code int, name string, obj interface{})
 	IndentedJSON(code int, obj interface{})
@@ -104,7 +122,6 @@ type HTTPContext interface {
 	FileAttachment(filepath, filename string)
 	SSEvent(name string, message interface{})
 	Stream(step func(w io.Writer) bool) bool
-	SetAccepted(formats ...string)
 
 	originalContext() interface{}
 	GetGin() (*gin.Context, bool)
