@@ -16,7 +16,11 @@ import (
 
 func NewGinHandlerFunc(ctx Context, handlerFunc HandlerFunc) gin.HandlerFunc {
 	return func(g *gin.Context) {
-		httpError := handlerFunc(&httpContextWithGin{Context: ctx, gin: g})
+		httpError := handlerFunc(&httpContextWithGin{
+			Context:            ctx,
+			gin:                g,
+			ginSetterAndGetter: ginSetterAndGetter{gin: g},
+		})
 		if httpError != nil {
 			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 		}
@@ -25,7 +29,11 @@ func NewGinHandlerFunc(ctx Context, handlerFunc HandlerFunc) gin.HandlerFunc {
 
 func NewGinHandlerFuncWithData(ctx Context, handlerFunc HandlerFuncWithData, data Map) gin.HandlerFunc {
 	return func(g *gin.Context) {
-		httpError := handlerFunc(&httpContextWithGin{Context: ctx, gin: g}, data)
+		httpError := handlerFunc(&httpContextWithGin{
+			Context:            ctx,
+			gin:                g,
+			ginSetterAndGetter: ginSetterAndGetter{gin: g},
+		}, data)
 		if httpError != nil {
 			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 		}
@@ -35,6 +43,7 @@ func NewGinHandlerFuncWithData(ctx Context, handlerFunc HandlerFuncWithData, dat
 type httpContextWithGin struct {
 	Context
 	gin *gin.Context
+	ginSetterAndGetter
 }
 
 func (h *httpContextWithGin) HandlerName() string {
@@ -69,68 +78,72 @@ func (h *httpContextWithGin) AbortWithStatus(code int) {
 	h.gin.AbortWithStatus(code)
 }
 
-func (h *httpContextWithGin) Get(key string) (interface{}, bool) {
-	return h.gin.Get(key)
+type ginSetterAndGetter struct {
+	gin *gin.Context
 }
 
-func (h *httpContextWithGin) Set(key string, value interface{}) {
-	h.gin.Set(key, value)
+func (sg *ginSetterAndGetter) Get(key string) (interface{}, bool) {
+	return sg.gin.Get(key)
 }
 
-func (h *httpContextWithGin) MustGet(key string) interface{} {
-	return h.gin.MustGet(key)
+func (sg *ginSetterAndGetter) Set(key string, value interface{}) {
+	sg.gin.Set(key, value)
 }
 
-func (h *httpContextWithGin) GetString(key string) (s string) {
-	return h.gin.GetString(key)
+func (sg *ginSetterAndGetter) MustGet(key string) interface{} {
+	return sg.gin.MustGet(key)
 }
 
-func (h *httpContextWithGin) GetBool(key string) (b bool) {
-	return h.gin.GetBool(key)
+func (sg *ginSetterAndGetter) GetString(key string) (s string) {
+	return sg.gin.GetString(key)
 }
 
-func (h *httpContextWithGin) GetInt(key string) (i int) {
-	return h.gin.GetInt(key)
+func (sg *ginSetterAndGetter) GetBool(key string) (b bool) {
+	return sg.gin.GetBool(key)
 }
 
-func (h *httpContextWithGin) GetInt64(key string) (i64 int64) {
-	return h.gin.GetInt64(key)
+func (sg *ginSetterAndGetter) GetInt(key string) (i int) {
+	return sg.gin.GetInt(key)
 }
 
-func (h *httpContextWithGin) GetUint(key string) (ui uint) {
-	return h.gin.GetUint(key)
+func (sg *ginSetterAndGetter) GetInt64(key string) (i64 int64) {
+	return sg.gin.GetInt64(key)
 }
 
-func (h *httpContextWithGin) GetUint64(key string) (ui64 uint64) {
-	return h.gin.GetUint64(key)
+func (sg *ginSetterAndGetter) GetUint(key string) (ui uint) {
+	return sg.gin.GetUint(key)
 }
 
-func (h *httpContextWithGin) GetFloat64(key string) (f64 float64) {
-	return h.gin.GetFloat64(key)
+func (sg *ginSetterAndGetter) GetUint64(key string) (ui64 uint64) {
+	return sg.gin.GetUint64(key)
 }
 
-func (h *httpContextWithGin) GetTime(key string) (t time.Time) {
-	return h.gin.GetTime(key)
+func (sg *ginSetterAndGetter) GetFloat64(key string) (f64 float64) {
+	return sg.gin.GetFloat64(key)
 }
 
-func (h *httpContextWithGin) GetDuration(key string) (d time.Duration) {
-	return h.gin.GetDuration(key)
+func (sg *ginSetterAndGetter) GetTime(key string) (t time.Time) {
+	return sg.gin.GetTime(key)
 }
 
-func (h *httpContextWithGin) GetStringSlice(key string) (ss []string) {
-	return h.gin.GetStringSlice(key)
+func (sg *ginSetterAndGetter) GetDuration(key string) (d time.Duration) {
+	return sg.gin.GetDuration(key)
 }
 
-func (h *httpContextWithGin) GetStringMap(key string) (sm map[string]interface{}) {
-	return h.gin.GetStringMap(key)
+func (sg *ginSetterAndGetter) GetStringSlice(key string) (ss []string) {
+	return sg.gin.GetStringSlice(key)
 }
 
-func (h *httpContextWithGin) GetStringMapString(key string) (sms map[string]string) {
-	return h.gin.GetStringMapString(key)
+func (sg *ginSetterAndGetter) GetStringMap(key string) (sm map[string]interface{}) {
+	return sg.gin.GetStringMap(key)
 }
 
-func (h *httpContextWithGin) GetStringMapStringSlice(key string) (smss map[string][]string) {
-	return h.gin.GetStringMapStringSlice(key)
+func (sg *ginSetterAndGetter) GetStringMapString(key string) (sms map[string]string) {
+	return sg.gin.GetStringMapString(key)
+}
+
+func (sg *ginSetterAndGetter) GetStringMapStringSlice(key string) (smss map[string][]string) {
+	return sg.gin.GetStringMapStringSlice(key)
 }
 
 func (h *httpContextWithGin) Param(key string) string {

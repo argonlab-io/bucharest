@@ -1,3 +1,3 @@
 #!/bin/sh
 
-go test ./... -v
+go test ./... -cover -v
