@@ -27,6 +27,7 @@ func defaultHttpContextWithGin(ctx Context, g *gin.Context) *httpContextWithGin 
 		ginMultipartForm:    ginMultipartForm{gin: g},
 		ginBinder:           ginBinder{gin: g},
 		ginResponseHeader:   ginResponseHeader{gin: g},
+		ginResponseBody:     ginResponseBody{gin: g},
 	}
 }
 
@@ -60,6 +61,7 @@ type httpContextWithGin struct {
 	ginMultipartForm
 	ginBinder
 	ginResponseHeader
+	ginResponseBody
 }
 
 type ginHandlerInfo struct {
@@ -383,86 +385,91 @@ func (rh *ginResponseHeader) SetAccepted(formats ...string) {
 }
 
 //
-
-func (h *httpContextWithGin) Render(code int, r render.Render) {
-	h.gin.Render(code, r)
+type ginResponseBody struct {
+	gin *gin.Context
 }
 
-func (h *httpContextWithGin) HTML(code int, name string, obj interface{}) {
-	h.gin.HTML(code, name, obj)
+func (rb *ginResponseBody) Render(code int, r render.Render) {
+	rb.gin.Render(code, r)
 }
 
-func (h *httpContextWithGin) IndentedJSON(code int, obj interface{}) {
-	h.gin.IndentedJSON(code, obj)
+func (rb *ginResponseBody) HTML(code int, name string, obj interface{}) {
+	rb.gin.HTML(code, name, obj)
 }
 
-func (h *httpContextWithGin) SecureJSON(code int, obj interface{}) {
-	h.gin.SecureJSON(code, obj)
+func (rb *ginResponseBody) IndentedJSON(code int, obj interface{}) {
+	rb.gin.IndentedJSON(code, obj)
 }
 
-func (h *httpContextWithGin) JSONP(code int, obj interface{}) {
-	h.gin.SecureJSON(code, obj)
+func (rb *ginResponseBody) SecureJSON(code int, obj interface{}) {
+	rb.gin.SecureJSON(code, obj)
 }
 
-func (h *httpContextWithGin) JSON(code int, obj interface{}) {
-	h.gin.JSON(code, obj)
+func (rb *ginResponseBody) JSONP(code int, obj interface{}) {
+	rb.gin.SecureJSON(code, obj)
 }
 
-func (h *httpContextWithGin) AsciiJSON(code int, obj interface{}) {
-	h.gin.JSON(code, obj)
+func (rb *ginResponseBody) JSON(code int, obj interface{}) {
+	rb.gin.JSON(code, obj)
 }
 
-func (h *httpContextWithGin) PureJSON(code int, obj interface{}) {
-	h.gin.PureJSON(code, obj)
+func (rb *ginResponseBody) AsciiJSON(code int, obj interface{}) {
+	rb.gin.JSON(code, obj)
 }
 
-func (h *httpContextWithGin) XML(code int, obj interface{}) {
-	h.gin.XML(code, obj)
+func (rb *ginResponseBody) PureJSON(code int, obj interface{}) {
+	rb.gin.PureJSON(code, obj)
 }
 
-func (h *httpContextWithGin) YAML(code int, obj interface{}) {
-	h.gin.YAML(code, obj)
+func (rb *ginResponseBody) XML(code int, obj interface{}) {
+	rb.gin.XML(code, obj)
 }
 
-func (h *httpContextWithGin) ProtoBuf(code int, obj interface{}) {
-	h.gin.ProtoBuf(code, obj)
+func (rb *ginResponseBody) YAML(code int, obj interface{}) {
+	rb.gin.YAML(code, obj)
 }
 
-func (h *httpContextWithGin) String(code int, format string, values ...interface{}) {
-	h.gin.String(code, format, values...)
+func (rb *ginResponseBody) ProtoBuf(code int, obj interface{}) {
+	rb.gin.ProtoBuf(code, obj)
 }
 
-func (h *httpContextWithGin) Redirect(code int, location string) {
-	h.gin.Redirect(code, location)
+func (rb *ginResponseBody) String(code int, format string, values ...interface{}) {
+	rb.gin.String(code, format, values...)
 }
 
-func (h *httpContextWithGin) Data(code int, contentType string, data []byte) {
-	h.gin.Data(code, contentType, data)
+func (rb *ginResponseBody) Redirect(code int, location string) {
+	rb.gin.Redirect(code, location)
 }
 
-func (h *httpContextWithGin) DataFromReader(code int, contentLength int64, contentType string, reader io.Reader, extraHeaders map[string]string) {
-	h.gin.DataFromReader(code, contentLength, contentType, reader, extraHeaders)
+func (rb *ginResponseBody) Data(code int, contentType string, data []byte) {
+	rb.gin.Data(code, contentType, data)
 }
 
-func (h *httpContextWithGin) File(filepath string) {
-	h.gin.File(filepath)
+func (rb *ginResponseBody) DataFromReader(code int, contentLength int64, contentType string, reader io.Reader, extraHeaders map[string]string) {
+	rb.gin.DataFromReader(code, contentLength, contentType, reader, extraHeaders)
 }
 
-func (h *httpContextWithGin) FileFromFS(filepath string, fs http.FileSystem) {
-	h.gin.FileFromFS(filepath, fs)
+func (rb *ginResponseBody) File(filepath string) {
+	rb.gin.File(filepath)
 }
 
-func (h *httpContextWithGin) FileAttachment(filepath, filename string) {
-	h.gin.FileAttachment(filepath, filename)
+func (rb *ginResponseBody) FileFromFS(filepath string, fs http.FileSystem) {
+	rb.gin.FileFromFS(filepath, fs)
 }
 
-func (h *httpContextWithGin) SSEvent(name string, message interface{}) {
-	h.gin.SSEvent(name, message)
+func (rb *ginResponseBody) FileAttachment(filepath, filename string) {
+	rb.gin.FileAttachment(filepath, filename)
 }
 
-func (h *httpContextWithGin) Stream(step func(w io.Writer) bool) bool {
-	return h.gin.Stream(step)
+func (rb *ginResponseBody) SSEvent(name string, message interface{}) {
+	rb.gin.SSEvent(name, message)
 }
+
+func (rb *ginResponseBody) Stream(step func(w io.Writer) bool) bool {
+	return rb.gin.Stream(step)
+}
+
+// begin bucharest.Context
 
 func (h *httpContextWithGin) Deadline() (deadline time.Time, ok bool) {
 	return h.Context.Deadline()
@@ -475,6 +482,8 @@ func (h *httpContextWithGin) Done() <-chan struct{} {
 func (h *httpContextWithGin) Err() error {
 	return h.Context.Err()
 }
+
+// end bucharest.Context
 
 func (h *httpContextWithGin) Value(key interface{}) interface{} {
 	fromGin := h.gin.Value(key)
