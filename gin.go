@@ -25,6 +25,8 @@ func defaultHttpContextWithGin(ctx Context, g *gin.Context) *httpContextWithGin 
 		ginParamterAndQuery: ginParamterAndQuery{gin: g},
 		ginURLEncodedForm:   ginURLEncodedForm{gin: g},
 		ginMultipartForm:    ginMultipartForm{gin: g},
+		ginBinder:           ginBinder{gin: g},
+		ginResponseHeader:   ginResponseHeader{gin: g},
 	}
 }
 
@@ -56,6 +58,8 @@ type httpContextWithGin struct {
 	ginParamterAndQuery
 	ginURLEncodedForm
 	ginMultipartForm
+	ginBinder
+	ginResponseHeader
 }
 
 type ginHandlerInfo struct {
@@ -282,89 +286,103 @@ func (mf *ginMultipartForm) SaveUploadedFile(file *multipart.FileHeader, dst str
 	return mf.gin.SaveUploadedFile(file, dst)
 }
 
-func (h *httpContextWithGin) Bind(obj interface{}) error {
-	return h.gin.Bind(obj)
+type ginBinder struct {
+	gin *gin.Context
 }
 
-func (h *httpContextWithGin) BindJSON(obj interface{}) error {
-	return h.gin.BindJSON(obj)
+func (b *ginBinder) Bind(obj interface{}) error {
+	return b.gin.Bind(obj)
 }
 
-func (h *httpContextWithGin) BindXML(obj interface{}) error {
-	return h.gin.BindXML(obj)
+func (b *ginBinder) BindJSON(obj interface{}) error {
+	return b.gin.BindJSON(obj)
 }
 
-func (h *httpContextWithGin) BindQuery(obj interface{}) error {
-	return h.gin.BindQuery(obj)
+func (b *ginBinder) BindXML(obj interface{}) error {
+	return b.gin.BindXML(obj)
 }
 
-func (h *httpContextWithGin) BindYAML(obj interface{}) error {
-	return h.gin.BindYAML(obj)
+func (b *ginBinder) BindQuery(obj interface{}) error {
+	return b.gin.BindQuery(obj)
 }
 
-func (h *httpContextWithGin) BindHeader(obj interface{}) error {
-	return h.gin.BindHeader(obj)
+func (b *ginBinder) BindYAML(obj interface{}) error {
+	return b.gin.BindYAML(obj)
 }
 
-func (h *httpContextWithGin) BindUri(obj interface{}) error {
-	return h.gin.BindUri(obj)
+func (b *ginBinder) BindHeader(obj interface{}) error {
+	return b.gin.BindHeader(obj)
 }
 
-func (h *httpContextWithGin) MustBindWith(obj interface{}, b binding.Binding) error {
-	return h.gin.MustBindWith(obj, b)
+func (b *ginBinder) BindUri(obj interface{}) error {
+	return b.gin.BindUri(obj)
 }
 
-func (h *httpContextWithGin) ShouldBind(obj interface{}) error {
-	return h.gin.ShouldBind(obj)
+func (b *ginBinder) MustBindWith(obj interface{}, binder binding.Binding) error {
+	return b.gin.MustBindWith(obj, binder)
 }
 
-func (h *httpContextWithGin) ShouldBindJSON(obj interface{}) error {
-	return h.gin.ShouldBindJSON(obj)
+func (b *ginBinder) ShouldBind(obj interface{}) error {
+	return b.gin.ShouldBind(obj)
 }
 
-func (h *httpContextWithGin) ShouldBindXML(obj interface{}) error {
-	return h.gin.ShouldBindXML(obj)
+func (b *ginBinder) ShouldBindJSON(obj interface{}) error {
+	return b.gin.ShouldBindJSON(obj)
 }
 
-func (h *httpContextWithGin) ShouldBindQuery(obj interface{}) error {
-	return h.gin.ShouldBindQuery(obj)
+func (b *ginBinder) ShouldBindXML(obj interface{}) error {
+	return b.gin.ShouldBindXML(obj)
 }
 
-func (h *httpContextWithGin) ShouldBindYAML(obj interface{}) error {
-	return h.gin.ShouldBindYAML(obj)
+func (b *ginBinder) ShouldBindQuery(obj interface{}) error {
+	return b.gin.ShouldBindQuery(obj)
 }
 
-func (h *httpContextWithGin) ShouldBindHeader(obj interface{}) error {
-	return h.gin.ShouldBindHeader(obj)
+func (b *ginBinder) ShouldBindYAML(obj interface{}) error {
+	return b.gin.ShouldBindYAML(obj)
 }
 
-func (h *httpContextWithGin) ShouldBindUri(obj interface{}) error {
-	return h.gin.ShouldBindUri(obj)
+func (b *ginBinder) ShouldBindHeader(obj interface{}) error {
+	return b.gin.ShouldBindHeader(obj)
 }
 
-func (h *httpContextWithGin) ShouldBindWith(obj interface{}, b binding.Binding) error {
-	return h.gin.ShouldBindWith(obj, b)
+func (b *ginBinder) ShouldBindUri(obj interface{}) error {
+	return b.gin.ShouldBindUri(obj)
 }
 
-func (h *httpContextWithGin) ShouldBindBodyWith(obj interface{}, bb binding.BindingBody) (err error) {
-	return h.gin.ShouldBindBodyWith(obj, bb)
+func (b *ginBinder) ShouldBindWith(obj interface{}, binder binding.Binding) error {
+	return b.gin.ShouldBindWith(obj, binder)
 }
 
-func (h *httpContextWithGin) Status(code int) {
-	h.gin.Status(code)
+func (b *ginBinder) ShouldBindBodyWith(obj interface{}, bb binding.BindingBody) (err error) {
+	return b.gin.ShouldBindBodyWith(obj, bb)
 }
 
-func (h *httpContextWithGin) Header(key, value string) {
-	h.gin.Header(key, value)
+type ginResponseHeader struct {
+	gin *gin.Context
 }
 
-func (h *httpContextWithGin) SetSameSite(samesite http.SameSite) {
-	h.gin.SetSameSite(samesite)
+func (rh *ginResponseHeader) Status(code int) {
+	rh.gin.Status(code)
 }
 
-func (h *httpContextWithGin) SetCookie(name, value string, maxAge int, path, domain string, secure, httpOnly bool) {
-	h.gin.SetCookie(name, value, maxAge, path, domain, secure, httpOnly)
+func (rh *ginResponseHeader) Header(key, value string) {
+	rh.gin.Header(key, value)
 }
+
+func (rh *ginResponseHeader) SetSameSite(samesite http.SameSite) {
+	rh.gin.SetSameSite(samesite)
+}
+
+func (rh *ginResponseHeader) SetCookie(name, value string, maxAge int, path, domain string, secure, httpOnly bool) {
+	rh.gin.SetCookie(name, value, maxAge, path, domain, secure, httpOnly)
+}
+
+func (rh *ginResponseHeader) SetAccepted(formats ...string) {
+	rh.gin.SetAccepted(formats...)
+}
+
+//
 
 func (h *httpContextWithGin) Render(code int, r render.Render) {
 	h.gin.Render(code, r)
@@ -444,10 +462,6 @@ func (h *httpContextWithGin) SSEvent(name string, message interface{}) {
 
 func (h *httpContextWithGin) Stream(step func(w io.Writer) bool) bool {
 	return h.gin.Stream(step)
-}
-
-func (h *httpContextWithGin) SetAccepted(formats ...string) {
-	h.gin.SetAccepted(formats...)
 }
 
 func (h *httpContextWithGin) Deadline() (deadline time.Time, ok bool) {
