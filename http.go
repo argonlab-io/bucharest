@@ -53,7 +53,7 @@ type HTTPContext interface {
 	GetStringMapString(key string) (sms map[string]string)
 	GetStringMapStringSlice(key string) (smss map[string][]string)
 
-	// pathParamter
+	// parameter and query
 	Param(key string) string
 	Query(key string) string
 	DefaultQuery(key, defaultValue string) string
@@ -62,6 +62,8 @@ type HTTPContext interface {
 	GetQueryArray(key string) ([]string, bool)
 	QueryMap(key string) map[string]string
 	GetQueryMap(key string) (map[string]string, bool)
+
+	// urlencoded
 	PostForm(key string) string
 	DefaultPostForm(key, defaultValue string) string
 	GetPostForm(key string) (string, bool)
@@ -70,7 +72,7 @@ type HTTPContext interface {
 	PostFormMap(key string) map[string]string
 	GetPostFormMap(key string) (map[string]string, bool)
 
-	// multipartFile
+	// multipart
 	FormFile(name string) (*multipart.FileHeader, error)
 	MultipartForm() (*multipart.Form, error)
 	SaveUploadedFile(file *multipart.FileHeader, dst string) error

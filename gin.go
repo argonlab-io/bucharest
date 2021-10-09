@@ -17,12 +17,15 @@ import (
 func NewGinHandlerFunc(ctx Context, handlerFunc HandlerFunc) gin.HandlerFunc {
 	return func(g *gin.Context) {
 		httpError := handlerFunc(&httpContextWithGin{
-			Context:            ctx,
-			gin:                g,
-			ginHandlerInfo:     ginHandlerInfo{gin: g},
-			ginRequest:         ginRequest{gin: g},
-			ginHandlerControl:  ginHandlerControl{gin: g},
-			ginSetterAndGetter: ginSetterAndGetter{gin: g},
+			Context:             ctx,
+			gin:                 g,
+			ginHandlerInfo:      ginHandlerInfo{gin: g},
+			ginRequest:          ginRequest{gin: g},
+			ginHandlerControl:   ginHandlerControl{gin: g},
+			ginSetterAndGetter:  ginSetterAndGetter{gin: g},
+			ginParamterAndQuery: ginParamterAndQuery{gin: g},
+			ginURLEncodedForm:   ginURLEncodedForm{gin: g},
+			ginMultipartForm:    ginMultipartForm{gin: g},
 		})
 		if httpError != nil {
 			g.JSON(httpError.GetStatus(), httpError.GetJSON())
@@ -33,12 +36,15 @@ func NewGinHandlerFunc(ctx Context, handlerFunc HandlerFunc) gin.HandlerFunc {
 func NewGinHandlerFuncWithData(ctx Context, handlerFunc HandlerFuncWithData, data Map) gin.HandlerFunc {
 	return func(g *gin.Context) {
 		httpError := handlerFunc(&httpContextWithGin{
-			Context:            ctx,
-			gin:                g,
-			ginHandlerInfo:     ginHandlerInfo{gin: g},
-			ginRequest:         ginRequest{gin: g},
-			ginHandlerControl:  ginHandlerControl{gin: g},
-			ginSetterAndGetter: ginSetterAndGetter{gin: g},
+			Context:             ctx,
+			gin:                 g,
+			ginHandlerInfo:      ginHandlerInfo{gin: g},
+			ginRequest:          ginRequest{gin: g},
+			ginHandlerControl:   ginHandlerControl{gin: g},
+			ginSetterAndGetter:  ginSetterAndGetter{gin: g},
+			ginParamterAndQuery: ginParamterAndQuery{gin: g},
+			ginURLEncodedForm:   ginURLEncodedForm{gin: g},
+			ginMultipartForm:    ginMultipartForm{gin: g},
 		}, data)
 		if httpError != nil {
 			g.JSON(httpError.GetStatus(), httpError.GetJSON())
@@ -53,6 +59,9 @@ type httpContextWithGin struct {
 	ginRequest
 	ginHandlerControl
 	ginSetterAndGetter
+	ginParamterAndQuery
+	ginURLEncodedForm
+	ginMultipartForm
 }
 
 type ginHandlerInfo struct {
@@ -195,76 +204,88 @@ func (sg *ginSetterAndGetter) GetStringMapStringSlice(key string) (smss map[stri
 	return sg.gin.GetStringMapStringSlice(key)
 }
 
-func (h *httpContextWithGin) Param(key string) string {
-	return h.gin.Param(key)
+type ginParamterAndQuery struct {
+	gin *gin.Context
 }
 
-func (h *httpContextWithGin) Query(key string) string {
-	return h.gin.Query(key)
+func (pq *ginParamterAndQuery) Param(key string) string {
+	return pq.gin.Param(key)
 }
 
-func (h *httpContextWithGin) DefaultQuery(key, defaultValue string) string {
-	return h.gin.DefaultQuery(key, defaultValue)
+func (pq *ginParamterAndQuery) Query(key string) string {
+	return pq.gin.Query(key)
 }
 
-func (h *httpContextWithGin) GetQuery(key string) (string, bool) {
-	return h.gin.GetQuery(key)
+func (pq *ginParamterAndQuery) DefaultQuery(key, defaultValue string) string {
+	return pq.gin.DefaultQuery(key, defaultValue)
 }
 
-func (h *httpContextWithGin) QueryArray(key string) []string {
-	return h.gin.QueryArray(key)
+func (pq *ginParamterAndQuery) GetQuery(key string) (string, bool) {
+	return pq.gin.GetQuery(key)
 }
 
-func (h *httpContextWithGin) GetQueryArray(key string) ([]string, bool) {
-	return h.gin.GetQueryArray(key)
+func (pq *ginParamterAndQuery) QueryArray(key string) []string {
+	return pq.gin.QueryArray(key)
 }
 
-func (h *httpContextWithGin) QueryMap(key string) map[string]string {
-	return h.gin.QueryMap(key)
+func (pq *ginParamterAndQuery) GetQueryArray(key string) ([]string, bool) {
+	return pq.gin.GetQueryArray(key)
 }
 
-func (h *httpContextWithGin) GetQueryMap(key string) (map[string]string, bool) {
-	return h.gin.GetQueryMap(key)
+func (pq *ginParamterAndQuery) QueryMap(key string) map[string]string {
+	return pq.gin.QueryMap(key)
 }
 
-func (h *httpContextWithGin) PostForm(key string) string {
-	return h.gin.PostForm(key)
+func (pq *ginParamterAndQuery) GetQueryMap(key string) (map[string]string, bool) {
+	return pq.gin.GetQueryMap(key)
 }
 
-func (h *httpContextWithGin) DefaultPostForm(key, defaultValue string) string {
-	return h.gin.DefaultPostForm(key, defaultValue)
+type ginURLEncodedForm struct {
+	gin *gin.Context
 }
 
-func (h *httpContextWithGin) GetPostForm(key string) (string, bool) {
-	return h.gin.GetPostForm(key)
+func (uef *ginURLEncodedForm) PostForm(key string) string {
+	return uef.gin.PostForm(key)
 }
 
-func (h *httpContextWithGin) PostFormArray(key string) []string {
-	return h.gin.PostFormArray(key)
+func (uef *ginURLEncodedForm) DefaultPostForm(key, defaultValue string) string {
+	return uef.gin.DefaultPostForm(key, defaultValue)
 }
 
-func (h *httpContextWithGin) GetPostFormArray(key string) ([]string, bool) {
-	return h.gin.GetPostFormArray(key)
+func (uef *ginURLEncodedForm) GetPostForm(key string) (string, bool) {
+	return uef.gin.GetPostForm(key)
 }
 
-func (h *httpContextWithGin) PostFormMap(key string) map[string]string {
-	return h.gin.PostFormMap(key)
+func (uef *ginURLEncodedForm) PostFormArray(key string) []string {
+	return uef.gin.PostFormArray(key)
 }
 
-func (h *httpContextWithGin) GetPostFormMap(key string) (map[string]string, bool) {
-	return h.gin.GetPostFormMap(key)
+func (uef *ginURLEncodedForm) GetPostFormArray(key string) ([]string, bool) {
+	return uef.gin.GetPostFormArray(key)
 }
 
-func (h *httpContextWithGin) FormFile(name string) (*multipart.FileHeader, error) {
-	return h.gin.FormFile(name)
+func (uef *ginURLEncodedForm) PostFormMap(key string) map[string]string {
+	return uef.gin.PostFormMap(key)
 }
 
-func (h *httpContextWithGin) MultipartForm() (*multipart.Form, error) {
-	return h.gin.MultipartForm()
+func (uef *ginURLEncodedForm) GetPostFormMap(key string) (map[string]string, bool) {
+	return uef.gin.GetPostFormMap(key)
 }
 
-func (h *httpContextWithGin) SaveUploadedFile(file *multipart.FileHeader, dst string) error {
-	return h.gin.SaveUploadedFile(file, dst)
+type ginMultipartForm struct {
+	gin *gin.Context
+}
+
+func (mf *ginMultipartForm) FormFile(name string) (*multipart.FileHeader, error) {
+	return mf.gin.FormFile(name)
+}
+
+func (mf *ginMultipartForm) MultipartForm() (*multipart.Form, error) {
+	return mf.gin.MultipartForm()
+}
+
+func (mf *ginMultipartForm) SaveUploadedFile(file *multipart.FileHeader, dst string) error {
+	return mf.gin.SaveUploadedFile(file, dst)
 }
 
 func (h *httpContextWithGin) Bind(obj interface{}) error {
