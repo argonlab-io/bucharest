@@ -563,18 +563,14 @@ func GinLoggerWithConfig(ctx HTTPContext, data Map) HTTPError {
 		// Stop timer
 		param.TimeStamp = time.Now()
 		param.Latency = param.TimeStamp.Sub(start)
-
 		param.ClientIP = ctx.ClientIP()
 		param.Method = ctx.Gin().Request.Method
 		param.StatusCode = ctx.Gin().Writer.Status()
 		param.ErrorMessage = ctx.Gin().Errors.ByType(gin.ErrorTypePrivate).String()
-
 		param.BodySize = ctx.Gin().Writer.Size()
-
 		if raw != "" {
 			path = path + "?" + raw
 		}
-
 		param.Path = path
 
 		ctx.Log().Out = out
@@ -583,7 +579,6 @@ func GinLoggerWithConfig(ctx HTTPContext, data Map) HTTPError {
 		} else {
 			logWithDefaultFormatter(ctx, &param)
 		}
-
 	}
 
 	return nil
