@@ -514,23 +514,13 @@ func (h *httpContextWithGin) Gin() *gin.Context {
 }
 
 func GinLoggerWithConfig(ctx HTTPContext, data Map) HTTPError {
-	var conf gin.LoggerConfig
-	var logLevelFromGinParam LogLevelFromGinParam
-	if data["conf"] == nil {
-		conf = gin.LoggerConfig{}
-	} else {
-		conf = data["conf"].(gin.LoggerConfig)
-	}
+	conf, logLevelFromGinParam := getLogConfigAndLogLevel(data)
 
 	formatter := conf.Formatter
-	logLevelFromGinParam, ok := data["logLevel"].(LogLevelFromGinParam)
-	if !ok {
-		logLevelFromGinParam = nil
-	}
 
-	out := conf.Output
-	if out == nil {
-		out = os.Stdout
+	ctx.Log().Out = conf.Output
+	if ctx.Log().Out == nil {
+		ctx.Log().Out = os.Stdout
 	}
 
 	notlogged := conf.SkipPaths
@@ -539,7 +529,6 @@ func GinLoggerWithConfig(ctx HTTPContext, data Map) HTTPError {
 
 	if length := len(notlogged); length > 0 {
 		skip = make(map[string]struct{}, length)
-
 		for _, path := range notlogged {
 			skip[path] = struct{}{}
 		}
@@ -573,7 +562,6 @@ func GinLoggerWithConfig(ctx HTTPContext, data Map) HTTPError {
 		}
 		param.Path = path
 
-		ctx.Log().Out = out
 		if formatter != nil && logLevelFromGinParam != nil {
 			ctx.Log().Log(logLevelFromGinParam(&param), formatter(param))
 		} else {
@@ -585,6 +573,19 @@ func GinLoggerWithConfig(ctx HTTPContext, data Map) HTTPError {
 }
 
 type LogLevelFromGinParam func(*gin.LogFormatterParams) logrus.Level
+
+func getLogConfigAndLogLevel(data Map) (*gin.LoggerConfig, LogLevelFromGinParam) {
+	conf, ok := data["conf"].(*gin.LoggerConfig)
+	if !ok {
+		conf = &gin.LoggerConfig{}
+	}
+	logLevelFromGinParam, ok := data["logLevel"].(LogLevelFromGinParam)
+	if !ok {
+		logLevelFromGinParam = nil
+	}
+
+	return conf, logLevelFromGinParam
+}
 
 func logWithDefaultFormatter(ctx Context, param *gin.LogFormatterParams) {
 	var statusColor, methodColor, resetColor string
