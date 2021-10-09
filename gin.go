@@ -14,19 +14,23 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func defaultHttpContextWithGin(ctx Context, g *gin.Context) *httpContextWithGin {
+	return &httpContextWithGin{
+		Context:             ctx,
+		gin:                 g,
+		ginHandlerInfo:      ginHandlerInfo{gin: g},
+		ginRequest:          ginRequest{gin: g},
+		ginHandlerControl:   ginHandlerControl{gin: g},
+		ginSetterAndGetter:  ginSetterAndGetter{gin: g},
+		ginParamterAndQuery: ginParamterAndQuery{gin: g},
+		ginURLEncodedForm:   ginURLEncodedForm{gin: g},
+		ginMultipartForm:    ginMultipartForm{gin: g},
+	}
+}
+
 func NewGinHandlerFunc(ctx Context, handlerFunc HandlerFunc) gin.HandlerFunc {
 	return func(g *gin.Context) {
-		httpError := handlerFunc(&httpContextWithGin{
-			Context:             ctx,
-			gin:                 g,
-			ginHandlerInfo:      ginHandlerInfo{gin: g},
-			ginRequest:          ginRequest{gin: g},
-			ginHandlerControl:   ginHandlerControl{gin: g},
-			ginSetterAndGetter:  ginSetterAndGetter{gin: g},
-			ginParamterAndQuery: ginParamterAndQuery{gin: g},
-			ginURLEncodedForm:   ginURLEncodedForm{gin: g},
-			ginMultipartForm:    ginMultipartForm{gin: g},
-		})
+		httpError := handlerFunc(defaultHttpContextWithGin(ctx, g))
 		if httpError != nil {
 			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 		}
@@ -35,17 +39,7 @@ func NewGinHandlerFunc(ctx Context, handlerFunc HandlerFunc) gin.HandlerFunc {
 
 func NewGinHandlerFuncWithData(ctx Context, handlerFunc HandlerFuncWithData, data Map) gin.HandlerFunc {
 	return func(g *gin.Context) {
-		httpError := handlerFunc(&httpContextWithGin{
-			Context:             ctx,
-			gin:                 g,
-			ginHandlerInfo:      ginHandlerInfo{gin: g},
-			ginRequest:          ginRequest{gin: g},
-			ginHandlerControl:   ginHandlerControl{gin: g},
-			ginSetterAndGetter:  ginSetterAndGetter{gin: g},
-			ginParamterAndQuery: ginParamterAndQuery{gin: g},
-			ginURLEncodedForm:   ginURLEncodedForm{gin: g},
-			ginMultipartForm:    ginMultipartForm{gin: g},
-		}, data)
+		httpError := handlerFunc(defaultHttpContextWithGin(ctx, g), data)
 		if httpError != nil {
 			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 		}
