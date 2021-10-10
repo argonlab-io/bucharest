@@ -30,3 +30,28 @@ func TestArgon2ErrorInvalidHash(t *testing.T) {
 	assert.Error(t, err)
 	assert.ErrorIs(t, ErrInvalidHash, err)
 }
+
+func TestArgon2ErrorNoVersion(t *testing.T) {
+	valid, err := CheckPasswordHashWithArgon2("foobar", "$argon2id$oversion$m=65536,t=3,p=2$Woo1mErn1s7AHf96ewQ8Uw$D4TzIwGO4XD2buk96qAP+Ed2baMo/KbTRMqXX00wtsU")
+	assert.Equal(t, valid, false)
+	assert.Error(t, err)
+}
+
+func TestArgon2ErrorIncompatibleVersion(t *testing.T) {
+	valid, err := CheckPasswordHashWithArgon2("foobar", "$argon2id$v=88$m=65536,t=3,p=2$Woo1mErn1s7AHf96ewQ8Uw$D4TzIwGO4XD2buk96qAP+Ed2baMo/KbTRMqXX00wtsU")
+	assert.Equal(t, valid, false)
+	assert.Error(t, err)
+	assert.ErrorIs(t, ErrIncompatibleVersion, err)
+}
+
+func TestArgon2ErrorNoParam(t *testing.T) {
+	valid, err := CheckPasswordHashWithArgon2("foobar", "$argon2id$v=19$noparams$Woo1mErn1s7AHf96ewQ8Uw$D4TzIwGO4XD2buk96qAP+Ed2baMo/KbTRMqXX00wtsU")
+	assert.Equal(t, valid, false)
+	assert.Error(t, err)
+}
+
+func TestArgon2ErrorIllegalBase64(t *testing.T) {
+	valid, err := CheckPasswordHashWithArgon2("foobar", "$argon2id$v=19$m=65536,t=3,p=2$notbase64$D4TzIwGO4XD2buk96qAP+Ed2baMo/KbTRMqXX00wtsU")
+	assert.Equal(t, valid, false)
+	assert.Error(t, err)
+}
