@@ -44,6 +44,9 @@ func TestLoadEnvFile(t *testing.T) {
 	boolz := env.Bool("BOOLZ")
 	assert.Equal(t, true, boolz)
 
+	v := env.Viper()
+	assert.NotEmpty(t, v)
+
 	err = os.Remove(path)
 	assert.NoError(t, err)
 }
