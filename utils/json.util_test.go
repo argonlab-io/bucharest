@@ -65,3 +65,11 @@ func TestJSONMapperStructToStruct(t *testing.T) {
 	assert.NotEmpty(t, dest.Foz)
 	assert.Equal(t, dest.Foz, "baz")
 }
+
+func TestJSONMapperError(t *testing.T) {
+	notJSONSrc := 1
+	dest := make(map[string]interface{})
+	err := JSONMapper(notJSONSrc, &dest)
+	assert.Error(t, err)
+	assert.Empty(t, dest)
+}
