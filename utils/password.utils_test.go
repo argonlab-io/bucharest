@@ -23,3 +23,10 @@ func TestArgon2(t *testing.T) {
 	assert.Equal(t, checkCorrect, true)
 	assert.Equal(t, checkWorng, false)
 }
+
+func TestArgon2ErrorInvalidHash(t *testing.T) {
+	valid, err := CheckPasswordHashWithArgon2("foobar", "$foo$bar")
+	assert.Equal(t, valid, false)
+	assert.Error(t, err)
+	assert.ErrorIs(t, ErrInvalidHash, err)
+}

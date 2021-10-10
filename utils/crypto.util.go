@@ -25,12 +25,7 @@ func HashStringToBase64URL(plaintext string, alg crypto.Hash) string {
 	return base64.RawURLEncoding.EncodeToString(HashString(plaintext, alg))
 }
 
-func RandomBytes(n uint64) ([]byte, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
+func RandomBytes(b []byte) []byte {
+	rand.Read(b)
+	return b
 }

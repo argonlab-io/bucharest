@@ -44,10 +44,7 @@ func HashPasswordWithArgon2(password string, params *Argon2HashingParam) (string
 		params = DefaultArgon2HashingParams
 	}
 	p := params
-	salt, err := RandomBytes(uint64(p.saltLength))
-	if err != nil {
-		return "", err
-	}
+	salt := RandomBytes(make([]byte, p.saltLength))
 
 	hash := argon2.IDKey([]byte(password), salt, p.iterations, p.memory, p.parallelism, p.keyLength)
 
