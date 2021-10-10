@@ -10,6 +10,9 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/argonlab-io/bucharest/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 type otherContext struct {
@@ -762,4 +765,54 @@ func XTestCustomContextGoroutines(t *testing.T) {
 	_, cancel6 := NewContextWithTimeout(ctx5, veryLongDuration)
 	defer cancel6()
 	checkNoGoroutine()
+}
+
+func XTestCallDefaultContextOptions(t *testing.T) {
+	ctx := NewContext()
+	if ctx == nil {
+		t.Fatalf("NewContext returned nil")
+	}
+	select {
+	case x := <-ctx.Done():
+		t.Errorf("<-c.Done() == %v want nothing (it should block)", x)
+	default:
+	}
+	if got, want := fmt.Sprint(ctx), "bucharest.DefaultContext"; got != want {
+		t.Errorf("NewContext().String() = %q want %q", got, want)
+	}
+
+	utils.AssertPanic(t, func() { ctx.ENV() }, ErrNoENV)
+	utils.AssertPanic(t, func() { ctx.GORM() }, ErrNoGORM)
+	utils.AssertPanic(t, func() { ctx.Log() }, ErrNoLogrus)
+	utils.AssertPanic(t, func() { ctx.Redis() }, ErrNoRedis)
+	utils.AssertPanic(t, func() { ctx.SQL() }, ErrNoSQL)
+	utils.AssertPanic(t, func() { ctx.SQLX() }, ErrNoSQLX)
+}
+
+func XTestAddValuesToContext(t *testing.T) {
+	ctx := NewContext()
+	if ctx == nil {
+		t.Fatalf("NewContext returned nil")
+	}
+	select {
+	case x := <-ctx.Done():
+		t.Errorf("<-c.Done() == %v want nothing (it should block)", x)
+	default:
+	}
+	if got, want := fmt.Sprint(ctx), "bucharest.DefaultContext"; got != want {
+		t.Errorf("NewContext().String() = %q want %q", got, want)
+	}
+
+	key1 := 1
+	value1 := "one"
+	key2 := "two"
+	value2 := 2
+
+	ctx = AddValuesToContext(ctx, MapAny{
+		key1: value1,
+		key2: value2,
+	})
+
+	assert.Equal(t, value1, ctx.Value(key1))
+	assert.Equal(t, value2, ctx.Value(key2))
 }
