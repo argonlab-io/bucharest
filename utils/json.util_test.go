@@ -67,9 +67,9 @@ func TestJSONMapperStructToStruct(t *testing.T) {
 }
 
 func TestJSONMapperError(t *testing.T) {
-	notJSONSrc := 1
+	src := make(map[interface{}]interface{})
 	dest := make(map[string]interface{})
-	err := JSONMapper(notJSONSrc, &dest)
+	err := JSONMapper(&src, &dest)
 	assert.Error(t, err)
 	assert.Empty(t, dest)
 }

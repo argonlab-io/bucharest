@@ -1,6 +1,8 @@
 package utils
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 func JSONMapper(src interface{}, dest interface{}) error {
 	b, err := json.Marshal(src)
