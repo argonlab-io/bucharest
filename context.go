@@ -19,6 +19,7 @@ type Context interface {
 	Redis() *redis.Client
 	SQL() *sql.DB
 	SQLX() *sqlx.DB
+	SetValue(key, val interface{})
 }
 
 var ErrNoENV = errors.New("ENV is not present in this context")
@@ -28,9 +29,9 @@ var ErrNoRedis = errors.New("*redis.Client is not present in this context")
 var ErrNoSQL = errors.New("*sql.DB is not present in this context")
 var ErrNoSQLX = errors.New("*sqlx.DB is not present in this context")
 
-func AddValuesToContext(ctx context.Context, values MapAny) Context {
+func AddValuesToContext(ctx Context, values MapAny) Context {
 	for key, value := range values {
-		ctx = context.WithValue(ctx, key, value)
+		ctx.SetValue(key, value)
 	}
-	return ctx.(Context)
+	return ctx
 }

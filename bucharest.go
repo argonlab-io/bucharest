@@ -92,3 +92,7 @@ func (ctx *BuchatrestContext) SQLX() *sqlx.DB {
 	}
 	return ctx.sqlx_
 }
+
+func (ctx *BuchatrestContext) SetValue(key, val interface{}) {
+	ctx.Context = context.WithValue(ctx.Context, key, val)
+}

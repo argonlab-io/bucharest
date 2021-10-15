@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func XTestAddValuesToContext(t *testing.T) {
+func TestAddValuesToContext(t *testing.T) {
 	ctx := context.Background()
 	if ctx == nil {
 		t.Fatalf("NewContext returned nil")
@@ -28,7 +28,7 @@ func XTestAddValuesToContext(t *testing.T) {
 	key2 := "two"
 	value2 := 2
 
-	ctx = AddValuesToContext(ctx, MapAny{
+	ctx = AddValuesToContext(NewContextWithOptions(&ContextOptions{Parent: ctx}), MapAny{
 		key1: value1,
 		key2: value2,
 	})
