@@ -1,6 +1,7 @@
 package bucharest_test
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -31,7 +32,7 @@ func TestNewContextWithOptions(t *testing.T) {
 }
 
 func TestNewContextWithOptionsFromParentContext(t *testing.T) {
-	ctx := NewContextWithOptions(&ContextOptions{Parent: NewContext()})
+	ctx := NewContextWithOptions(&ContextOptions{Parent: context.Background()})
 	if ctx == nil {
 		t.Fatalf("NewContext returned nil")
 	}
@@ -46,7 +47,7 @@ func TestNewContextWithOptionsFromParentContext(t *testing.T) {
 }
 
 func TestNewContextWithOptionsWithNoAddtionalOptions(t *testing.T) {
-	ctx := NewContextWithOptions(&ContextOptions{Parent: NewContext()})
+	ctx := NewContextWithOptions(&ContextOptions{Parent: context.Background()})
 	if ctx == nil {
 		t.Fatalf("NewContext returned nil")
 	}
@@ -100,7 +101,7 @@ func TestNewContextWithOptionsWithAllAddtionalOptions(t *testing.T) {
 	sqlx_ := &sqlx.DB{}
 
 	ctx := NewContextWithOptions(&ContextOptions{
-		Parent: NewContext(),
+		Parent: context.Background(),
 		ENV:    env,
 		GORM:   gorm,
 		Logrus: logrus,

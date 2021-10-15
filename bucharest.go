@@ -1,6 +1,7 @@
 package bucharest
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/go-redis/redis/v8"
@@ -13,14 +14,14 @@ type ContextOptions struct {
 	ENV    ENV
 	GORM   *gorm.DB
 	Logrus *logrus.Logger
-	Parent Context
+	Parent context.Context
 	SQL    *sql.DB
 	SQLX   *sqlx.DB
 	Redis  *redis.Client
 }
 
 type BuchatrestContext struct {
-	Context
+	context.Context
 	env     ENV
 	gorm_   *gorm.DB
 	logrus_ *logrus.Logger
@@ -34,7 +35,7 @@ func NewContextWithOptions(options *ContextOptions) Context {
 		options = &ContextOptions{}
 	}
 	if options.Parent == nil {
-		options.Parent = NewContext()
+		options.Parent = context.Background()
 	}
 	return &BuchatrestContext{
 		Context: options.Parent,
