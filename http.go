@@ -131,6 +131,7 @@ type HTTPContext interface {
 }
 
 type HTTPError interface {
+	OriginalError() error
 	GetStatus() int
 	GetJSON() interface{}
 }

@@ -7,17 +7,22 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type httpError struct {
-	status  int
-	Message interface{} `json:"message"`
+type HttpError struct {
+	status        int
+	Message       interface{} `json:"message"`
+	originalError error
 }
 
-func (e *httpError) GetStatus() int {
+func (e *HttpError) GetStatus() int {
 	return e.status
 }
 
-func (e *httpError) GetJSON() interface{} {
+func (e *HttpError) GetJSON() interface{} {
 	return e
+}
+
+func (e *HttpError) OriginalError() error {
+	return e.originalError
 }
 
 type ValidationErrors struct {
@@ -27,45 +32,50 @@ type ValidationErrors struct {
 
 func NewBadRequestError(err error) HTTPError {
 	mapper := make(map[string]interface{})
-	jerr := utils.JSONMapper(err, mapper)
-	if jerr != nil && len(mapper) != 0 {
-		return &httpError{
-			status:  http.StatusBadRequest,
-			Message: mapper,
+	jerr := utils.JSONMapper(err, &mapper)
+	if jerr == nil && len(mapper) != 0 {
+		return &HttpError{
+			status:        http.StatusBadRequest,
+			Message:       mapper,
+			originalError: err,
 		}
 	}
 
 	validatorErrors, ok := err.(validator.ValidationErrors)
 	if ok {
+		mapper = make(map[string]interface{})
 		for _, validatorError := range validatorErrors {
 			mapper[validatorError.Field()] = &ValidationErrors{
 				Error: validatorError.Error(),
 				Param: validatorError.Param(),
 			}
 		}
-		return &httpError{
-			status:  http.StatusBadRequest,
-			Message: mapper,
+
+		return &HttpError{
+			status:        http.StatusBadRequest,
+			Message:       mapper,
+			originalError: err,
 		}
 	}
 
-	return &httpError{
-		status:  http.StatusBadRequest,
-		Message: err.Error(),
+	return &HttpError{
+		status:        http.StatusBadRequest,
+		Message:       err.Error(),
+		originalError: err,
 	}
 }
 
 func NewInternalServerError(err error) HTTPError {
 	mapper := make(map[string]interface{})
-	jerr := utils.JSONMapper(err, mapper)
-	if jerr != nil && len(mapper) != 0 {
-		return &httpError{
+	jerr := utils.JSONMapper(err, &mapper)
+	if jerr == nil && len(mapper) != 0 {
+		return &HttpError{
 			status:  http.StatusInternalServerError,
 			Message: mapper,
 		}
 	}
 
-	return &httpError{
+	return &HttpError{
 		status:  http.StatusInternalServerError,
 		Message: err.Error(),
 	}
