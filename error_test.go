@@ -3,6 +3,9 @@ package bucharest_test
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
+	"net/http"
 	"testing"
 
 	. "github.com/argonlab-io/bucharest"
@@ -56,6 +59,7 @@ func TestNewBadRequestErrorWithFromValidateError(t *testing.T) {
 	valErr := validate.Struct(errNooFoo).(validator.ValidationErrors)
 	httpError := NewBadRequestError(valErr)
 	assert.Equal(t, httpError.OriginalError(), valErr)
+	assert.Equal(t, httpError.GetStatus(), http.StatusBadRequest)
 	serializable := httpError.GetJSON()
 	mapper := make(map[string]interface{})
 	err := utils.JSONMapper(serializable, &mapper)
@@ -65,4 +69,36 @@ func TestNewBadRequestErrorWithFromValidateError(t *testing.T) {
 	assert.NotEmpty(t, verr)
 	assert.NotEmpty(t, verr["Foo"])
 	assert.Equal(t, verr["Foo"], map[string]interface{}{"error": "Key: 'myStruct.Foo' Error:Field validation for 'Foo' failed on the 'required' tag"})
+}
+
+func TestInternalServerError(t *testing.T) {
+	valErr := errors.New("error: foo")
+	httpError := NewInternalServerError(valErr)
+	assert.Equal(t, httpError.OriginalError(), valErr)
+	assert.Equal(t, httpError.GetStatus(), http.StatusInternalServerError)
+	serializable := httpError.GetJSON()
+	mapper := make(map[string]interface{})
+	err := utils.JSONMapper(serializable, &mapper)
+	assert.NoError(t, err)
+	message, ok := mapper["message"]
+	assert.True(t, ok)
+	log.Println(message, valErr.Error())
+	assert.Equal(t, message, valErr.Error())
+}
+
+func TestInternalServerErrorWithSerializableError(t *testing.T) {
+	valErr := &jsonError{"foo": "bar"}
+	httpError := NewInternalServerError(valErr)
+	assert.Equal(t, httpError.OriginalError(), valErr)
+	assert.Equal(t, httpError.GetStatus(), http.StatusInternalServerError)
+	serializable := httpError.GetJSON()
+	mapper := make(map[string]interface{})
+	err := utils.JSONMapper(serializable, &mapper)
+	assert.NoError(t, err)
+	message, ok := mapper["message"]
+	assert.True(t, ok)
+	_, ok = message.(map[string]interface{})
+	assert.True(t, ok)
+	assert.Equal(t, message.(map[string]interface{})["foo"], "bar")
+	assert.Equal(t, valErr.Error(), fmt.Sprint(valErr))
 }

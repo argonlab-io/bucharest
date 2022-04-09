@@ -4,28 +4,66 @@ import (
 	"crypto"
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 )
 
-func HashString(plaintext string, alg crypto.Hash) []byte {
+type encoder struct {
+	plaintext string
+	bytes     []byte
+}
+
+type decoder struct {
+	base64 string
+}
+
+func NewEncoder(plaintext *string) *encoder {
+	if plaintext == nil {
+		plaintext = new(string)
+		*plaintext = ""
+	}
+	return &encoder{
+		plaintext: *plaintext,
+		bytes:     []byte(*plaintext),
+	}
+}
+
+func (e *encoder) Plaintext() string {
+	return e.plaintext
+}
+
+func (e *encoder) Base64() string {
+	return base64.RawURLEncoding.EncodeToString(e.bytes)
+}
+
+func (e *encoder) Hash(alg crypto.Hash) []byte {
 	h := alg.New()
-	h.Write([]byte(plaintext))
+	h.Write([]byte(e.plaintext))
 	return h.Sum(nil)
 }
 
-func HashStringToHex(plaintext string, alg crypto.Hash) string {
-	return fmt.Sprintf("%x", HashString(plaintext, alg))
+func (e *encoder) Bytes() []byte {
+	return e.bytes
 }
 
-func HashStringToBase64(plaintext string, alg crypto.Hash) string {
-	return base64.RawStdEncoding.EncodeToString(HashString(plaintext, alg))
+func (e *encoder) Random(length int) *encoder {
+	bytes := make([]byte, length)
+	rand.Read(bytes)
+	e.bytes = bytes
+	e.plaintext = string(e.bytes)
+	return e
 }
 
-func HashStringToBase64URL(plaintext string, alg crypto.Hash) string {
-	return base64.RawURLEncoding.EncodeToString(HashString(plaintext, alg))
+func (e *encoder) ReadBytes(bytes []byte) *encoder {
+	e.bytes = bytes
+	e.plaintext = string(e.bytes)
+	return e
 }
 
-func RandomBytes(b []byte) []byte {
-	rand.Read(b)
-	return b
+func NewDecoder(b64 string) *decoder {
+	return &decoder{
+		base64: b64,
+	}
+}
+
+func (d *decoder) Bytes() ([]byte, error) {
+	return base64.RawURLEncoding.DecodeString(d.base64)
 }

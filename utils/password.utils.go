@@ -44,12 +44,12 @@ func HashPasswordWithArgon2(password string, params *Argon2HashingParam) (string
 		params = DefaultArgon2HashingParams
 	}
 	p := params
-	salt := RandomBytes(make([]byte, p.saltLength))
+	salt := NewEncoder(nil).Random(int(p.saltLength)).Bytes()
 
 	hash := argon2.IDKey([]byte(password), salt, p.iterations, p.memory, p.parallelism, p.keyLength)
 
-	b64Salt := Base64URLString(salt)
-	b64Hash := Base64URLString(hash)
+	b64Salt := NewEncoder(nil).ReadBytes(salt).Base64()
+	b64Hash := NewEncoder(nil).ReadBytes(hash).Base64()
 
 	encodedHash := fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s", argon2.Version, p.memory, p.iterations, p.parallelism, b64Salt, b64Hash)
 
@@ -100,14 +100,16 @@ func getArgon2Params(encodedHash string) (p *Argon2HashingParam, salt, hash []by
 		return nil, nil, nil, err
 	}
 
-	bs, err := Base64URLStringBulkDecode(vals[4], vals[5])
+	salt, err = NewDecoder(vals[4]).Bytes()
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	salt = bs[0]
 	p.saltLength = uint32(len(salt))
 
-	hash = bs[1]
+	hash, err = NewDecoder(vals[5]).Bytes()
+	if err != nil {
+		return nil, nil, nil, err
+	}
 	p.keyLength = uint32(len(hash))
 
 	return p, salt, hash, nil

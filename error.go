@@ -30,15 +30,27 @@ type ValidationErrors struct {
 	Param string `json:"param,omitempty"`
 }
 
-func NewBadRequestError(err error) HTTPError {
+func getErrorMapper(err error) map[string]interface{} {
 	mapper := make(map[string]interface{})
 	jerr := utils.JSONMapper(err, &mapper)
-	if jerr == nil && len(mapper) != 0 {
-		return &HttpError{
-			status:        http.StatusBadRequest,
-			Message:       mapper,
-			originalError: err,
-		}
+	if jerr != nil {
+		return make(map[string]interface{})
+	}
+	return mapper
+}
+
+func newHttpErrorFromMapper(status int, mapper map[string]interface{}, err error) *HttpError {
+	return &HttpError{
+		status:        status,
+		Message:       mapper,
+		originalError: err,
+	}
+}
+
+func NewBadRequestError(err error) HTTPError {
+	mapper := getErrorMapper(err)
+	if len(mapper) != 0 {
+		return newHttpErrorFromMapper(http.StatusBadRequest, mapper, err)
 	}
 
 	validatorErrors, ok := err.(validator.ValidationErrors)
@@ -66,17 +78,14 @@ func NewBadRequestError(err error) HTTPError {
 }
 
 func NewInternalServerError(err error) HTTPError {
-	mapper := make(map[string]interface{})
-	jerr := utils.JSONMapper(err, &mapper)
-	if jerr == nil && len(mapper) != 0 {
-		return &HttpError{
-			status:  http.StatusInternalServerError,
-			Message: mapper,
-		}
+	mapper := getErrorMapper(err)
+	if len(mapper) != 0 {
+		return newHttpErrorFromMapper(http.StatusInternalServerError, mapper, err)
 	}
 
 	return &HttpError{
-		status:  http.StatusInternalServerError,
-		Message: err.Error(),
+		status:        http.StatusInternalServerError,
+		Message:       err.Error(),
+		originalError: err,
 	}
 }
