@@ -284,10 +284,13 @@ func TestGetRawData(t *testing.T) {
 	handler := func(ctx HTTPContext) HTTPError {
 		b, err := ctx.GetRawData()
 		assert.NoError(t, err)
+
 		m := make(map[string]interface{}, 0)
 		err = utils.JSONMapper(b, &m)
+
 		assert.NoError(t, err)
 		assert.Equal(t, m["foo"], "bar")
+
 		ctx.Status(http.StatusNoContent)
 		return nil
 	}
@@ -302,6 +305,38 @@ func TestGetRawData(t *testing.T) {
 	fn := func() bool {
 		client := &http.Client{}
 		req, err := http.NewRequest(http.MethodGet, path, bytes.NewBufferString("{\"foo\":\"bar\"}"))
+		res, err = client.Do(req)
+		return err == nil
+	}
+
+	utils.RunUntil(fn, time.Second*4)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+}
+
+func TestWebSocketHeader(t *testing.T) {
+	ctx := NewContextWithOptions(nil)
+	assert.NotNil(t, ctx)
+
+	var path string
+	handler := func(ctx HTTPContext) HTTPError {
+		IsWebsocket := ctx.IsWebsocket()
+		assert.False(t, IsWebsocket)
+
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+	ginHandlerFunc := NewGinHandlerFunc(ctx, handler)
+	assert.NotNil(t, ginHandlerFunc)
+
+	var err error
+	path, err = getCallingPath(ginHandlerFunc)
+	assert.NoError(t, err)
+
+	var res *http.Response
+	fn := func() bool {
+		client := &http.Client{}
+		req, err := http.NewRequest(http.MethodGet, path, nil)
 		res, err = client.Do(req)
 		return err == nil
 	}
