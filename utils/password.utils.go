@@ -57,14 +57,16 @@ func HashPasswordWithArgon2(password string, params *Argon2HashingParam) (string
 }
 
 func CheckPasswordHashWithArgon2(password, encodedHash string) (match bool, err error) {
-	p, salt, hash, err := getArgon2Params(encodedHash)
+	salt := make([]byte, 0)
+	hash := make([]byte, 0)
+	p, err := getArgon2Params(encodedHash, &salt, &hash)
 	if err != nil {
 		return false, err
 	}
 
-	otherHash := argon2.IDKey([]byte(password), salt, p.iterations, p.memory, p.parallelism, p.keyLength)
+	targetHash := argon2.IDKey([]byte(password), salt, p.iterations, p.memory, p.parallelism, p.keyLength)
 
-	if subtle.ConstantTimeCompare(hash, otherHash) == 1 {
+	if subtle.ConstantTimeCompare(hash, targetHash) == 1 {
 		return true, nil
 	}
 
@@ -89,28 +91,28 @@ func splitHashArgon2(encodedHash string) ([]string, error) {
 	return vals, nil
 }
 
-func getArgon2Params(encodedHash string) (p *Argon2HashingParam, salt, hash []byte, err error) {
+func getArgon2Params(encodedHash string, salt *[]byte, hash *[]byte) (p *Argon2HashingParam, err error) {
 	vals, err := splitHashArgon2(encodedHash)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 	p = &Argon2HashingParam{}
 	_, err = fmt.Sscanf(vals[3], "m=%d,t=%d,p=%d", &p.memory, &p.iterations, &p.parallelism)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 
-	salt, err = NewDecoder(vals[4]).Bytes()
+	*salt, err = NewDecoder(vals[4]).Bytes()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
-	p.saltLength = uint32(len(salt))
+	p.saltLength = uint32(len(*salt))
 
-	hash, err = NewDecoder(vals[5]).Bytes()
+	*hash, err = NewDecoder(vals[5]).Bytes()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
-	p.keyLength = uint32(len(hash))
+	p.keyLength = uint32(len(*hash))
 
-	return p, salt, hash, nil
+	return p, nil
 }
