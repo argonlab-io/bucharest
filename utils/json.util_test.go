@@ -1,6 +1,8 @@
 package utils_test
 
 import (
+	"io"
+	"strings"
 	"testing"
 
 	. "github.com/argonlab-io/bucharest/utils"
@@ -72,4 +74,12 @@ func TestJSONMapperError(t *testing.T) {
 	err := JSONMapper(&src, &dest)
 	assert.Error(t, err)
 	assert.Empty(t, dest)
+}
+
+func TestJSONMapIOReadCloser(t *testing.T) {
+	r := io.NopCloser(strings.NewReader("{\"foo\":\"bar\"}"))
+	m := make(map[string]interface{}, 0)
+	err := JSONMapper(r, &m)
+	assert.NoError(t, err)
+	assert.Equal(t, m["foo"], "bar")
 }
