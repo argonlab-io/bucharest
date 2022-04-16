@@ -15,6 +15,9 @@ type mockContext struct {
 }
 
 func NewMockContext(parentContext Context, mock sqlmock.Sqlmock) MockContext {
+	if parentContext == nil {
+		parentContext = NewContextWithOptions(nil)
+	}
 	return &mockContext{
 		Context: parentContext,
 		sqlMock: mock,
