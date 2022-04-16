@@ -83,3 +83,10 @@ func TestJSONMapIOReadCloser(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, m["foo"], "bar")
 }
+
+func TestJSONFromBytes(t *testing.T) {
+	m := make(map[string]interface{}, 0)
+	err := JSONMapper([]byte("{\"foo\":\"bar\"}"), &m)
+	assert.NoError(t, err)
+	assert.Equal(t, m["foo"], "bar")
+}
