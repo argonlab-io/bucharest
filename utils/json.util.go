@@ -14,7 +14,15 @@ func JSONMapper(src interface{}, dest interface{}) error {
 		body.Close()
 		src = data
 	}
-	b, err := json.Marshal(src)
+	b, ok := src.([]byte)
+	if ok {
+		err = json.Unmarshal(b, dest)
+	}
+	if err == nil && ok {
+		return nil
+	}
+
+	b, err = json.Marshal(src)
 	if err != nil {
 		return err
 	}

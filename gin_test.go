@@ -1,6 +1,7 @@
 package bucharest_test
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"log"
@@ -200,6 +201,107 @@ func TestCookie(t *testing.T) {
 		client := &http.Client{}
 		req, err := http.NewRequest(http.MethodGet, path, nil)
 		req.Header.Set("Cookie", "foo=bar;")
+		res, err = client.Do(req)
+		return err == nil
+	}
+
+	utils.RunUntil(fn, time.Second*4)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+}
+
+func TestContentType(t *testing.T) {
+	ctx := NewContextWithOptions(nil)
+	assert.NotNil(t, ctx)
+
+	var path string
+	applicationJSONContentType := "application/json"
+	handler := func(ctx HTTPContext) HTTPError {
+		contentType := ctx.ContentType()
+		assert.Equal(t, contentType, applicationJSONContentType)
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+	ginHandlerFunc := NewGinHandlerFunc(ctx, handler)
+	assert.NotNil(t, ginHandlerFunc)
+
+	var err error
+	path, err = getCallingPath(ginHandlerFunc)
+	assert.NoError(t, err)
+
+	var res *http.Response
+	fn := func() bool {
+		client := &http.Client{}
+		req, err := http.NewRequest(http.MethodGet, path, nil)
+		req.Header.Set("Content-Type", applicationJSONContentType)
+		res, err = client.Do(req)
+		return err == nil
+	}
+
+	utils.RunUntil(fn, time.Second*4)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+}
+
+func TestGetHeader(t *testing.T) {
+	ctx := NewContextWithOptions(nil)
+	assert.NotNil(t, ctx)
+
+	var path string
+	XAPIKey := "f2dc1bdd32fa41389b0c5670a90081e6"
+	handler := func(ctx HTTPContext) HTTPError {
+		headerXAPIKey := ctx.GetHeader("X-API-Key")
+		assert.Equal(t, XAPIKey, headerXAPIKey)
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+	ginHandlerFunc := NewGinHandlerFunc(ctx, handler)
+	assert.NotNil(t, ginHandlerFunc)
+
+	var err error
+	path, err = getCallingPath(ginHandlerFunc)
+	assert.NoError(t, err)
+
+	var res *http.Response
+	fn := func() bool {
+		client := &http.Client{}
+		req, err := http.NewRequest(http.MethodGet, path, nil)
+		req.Header.Set("X-API-Key", XAPIKey)
+		res, err = client.Do(req)
+		return err == nil
+	}
+
+	utils.RunUntil(fn, time.Second*4)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+}
+
+func TestGetRawData(t *testing.T) {
+	ctx := NewContextWithOptions(nil)
+	assert.NotNil(t, ctx)
+
+	var path string
+	handler := func(ctx HTTPContext) HTTPError {
+		b, err := ctx.GetRawData()
+		assert.NoError(t, err)
+		m := make(map[string]interface{}, 0)
+		err = utils.JSONMapper(b, &m)
+		assert.NoError(t, err)
+		assert.Equal(t, m["foo"], "bar")
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+	ginHandlerFunc := NewGinHandlerFunc(ctx, handler)
+	assert.NotNil(t, ginHandlerFunc)
+
+	var err error
+	path, err = getCallingPath(ginHandlerFunc)
+	assert.NoError(t, err)
+
+	var res *http.Response
+	fn := func() bool {
+		client := &http.Client{}
+		req, err := http.NewRequest(http.MethodGet, path, bytes.NewBufferString("{\"foo\":\"bar\"}"))
 		res, err = client.Do(req)
 		return err == nil
 	}
