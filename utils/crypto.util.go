@@ -32,7 +32,7 @@ func (e *encoder) Plaintext() string {
 }
 
 func (e *encoder) Base64() string {
-	return base64.RawURLEncoding.EncodeToString(e.bytes)
+	return base64.RawURLEncoding.Strict().EncodeToString(e.bytes)
 }
 
 func (e *encoder) Hash(alg crypto.Hash) []byte {
@@ -73,10 +73,10 @@ func NewDecoder(b64 string) *decoder {
 }
 
 func (d *decoder) Bytes() ([]byte, error) {
-	b, err := base64.RawURLEncoding.DecodeString(d.base64)
+	b, err := base64.RawURLEncoding.Strict().DecodeString(d.base64)
 	if err == nil {
 		return b, nil
 	}
-	return base64.StdEncoding.DecodeString(d.base64)
+	return base64.StdEncoding.Strict().DecodeString(d.base64)
 }
 
