@@ -73,6 +73,10 @@ func NewDecoder(b64 string) *decoder {
 }
 
 func (d *decoder) Bytes() ([]byte, error) {
-	return base64.RawURLEncoding.DecodeString(d.base64)
+	b, err := base64.RawURLEncoding.DecodeString(d.base64)
+	if err == nil {
+		return b, nil
+	}
+	return base64.StdEncoding.DecodeString(d.base64)
 }
 
