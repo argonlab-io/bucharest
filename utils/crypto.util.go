@@ -77,6 +77,6 @@ func (d *decoder) Bytes() ([]byte, error) {
 	if err == nil {
 		return b, nil
 	}
-	return base64.StdEncoding.Strict().DecodeString(d.base64)
+	return base64.RawStdEncoding.Strict().DecodeString(d.base64)
 }
 
