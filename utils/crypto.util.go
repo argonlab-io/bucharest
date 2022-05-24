@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 )
 
 type encoder struct {
@@ -58,6 +59,13 @@ func (e *encoder) ReadBytes(bytes []byte) *encoder {
 	return e
 }
 
+func (e *encoder) Hex(alg crypto.Hash) (string) {
+	if (alg == 0) {
+		return hex.EncodeToString(e.Bytes())
+	}
+	return hex.EncodeToString(e.Hash(alg))
+}
+
 func NewDecoder(b64 string) *decoder {
 	return &decoder{
 		base64: b64,
@@ -67,3 +75,4 @@ func NewDecoder(b64 string) *decoder {
 func (d *decoder) Bytes() ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(d.base64)
 }
+
