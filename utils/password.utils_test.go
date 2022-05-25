@@ -50,8 +50,14 @@ func TestArgon2ErrorNoParam(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestArgon2ErrorIllegalBase64(t *testing.T) {
+func TestArgon2ErrorSaltIllegalBase64(t *testing.T) {
 	valid, err := CheckPasswordHashWithArgon2("foobar", "$argon2id$v=19$m=65536,t=3,p=2$notbase64$D4TzIwGO4XD2buk96qAP+Ed2baMo/KbTRMqXX00wtsU")
+	assert.Equal(t, valid, false)
+	assert.Error(t, err)
+}
+
+func TestArgon2ErrorHashIllegalBase64(t *testing.T) {
+	valid, err := CheckPasswordHashWithArgon2("foobar", "$argon2id$v=19$m=65536,t=3,p=4$mGDVgi3ZS8iU6uJf_-8W3g$malformbase64")
 	assert.Equal(t, valid, false)
 	assert.Error(t, err)
 }
