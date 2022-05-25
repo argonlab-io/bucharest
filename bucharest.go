@@ -96,3 +96,29 @@ func (ctx *BuchatrestContext) SQLX() *sqlx.DB {
 func (ctx *BuchatrestContext) SetValue(key, val interface{}) {
 	ctx.Context = context.WithValue(ctx.Context, key, val)
 }
+
+func (ctx *BuchatrestContext) Update(option *ContextOptions) {
+	if option.ENV != nil {
+		ctx.env = option.ENV
+	}
+
+	if option.GORM != nil {
+		ctx.gorm_ = option.GORM
+	}
+
+	if option.Logrus != nil {
+		ctx.logrus_ = option.Logrus
+	}
+
+	if option.Redis != nil {
+		ctx.redis_ = option.Redis
+	}
+
+	if option.SQL != nil {
+		ctx.sql_ = option.SQL
+	}
+
+	if option.SQLX != nil {
+		ctx.sqlx_ = option.SQLX
+	}
+}

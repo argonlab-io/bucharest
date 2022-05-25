@@ -168,6 +168,9 @@ func TestIP(t *testing.T) {
 	fn := func() bool {
 		client := &http.Client{}
 		req, err := http.NewRequest(http.MethodGet, path, nil)
+		if err != nil {
+			return false
+		}
 		res, err = client.Do(req)
 		return err == nil
 	}
@@ -200,6 +203,9 @@ func TestCookie(t *testing.T) {
 	fn := func() bool {
 		client := &http.Client{}
 		req, err := http.NewRequest(http.MethodGet, path, nil)
+		if err != nil {
+			return false
+		}
 		req.Header.Set("Cookie", "foo=bar;")
 		res, err = client.Do(req)
 		return err == nil
@@ -233,6 +239,9 @@ func TestContentType(t *testing.T) {
 	fn := func() bool {
 		client := &http.Client{}
 		req, err := http.NewRequest(http.MethodGet, path, nil)
+		if err != nil {
+			return false
+		}
 		req.Header.Set("Content-Type", applicationJSONContentType)
 		res, err = client.Do(req)
 		return err == nil
@@ -266,6 +275,9 @@ func TestGetHeader(t *testing.T) {
 	fn := func() bool {
 		client := &http.Client{}
 		req, err := http.NewRequest(http.MethodGet, path, nil)
+		if err != nil {
+			return false
+		}
 		req.Header.Set("X-API-Key", XAPIKey)
 		res, err = client.Do(req)
 		return err == nil
@@ -305,6 +317,9 @@ func TestGetRawData(t *testing.T) {
 	fn := func() bool {
 		client := &http.Client{}
 		req, err := http.NewRequest(http.MethodGet, path, bytes.NewBufferString("{\"foo\":\"bar\"}"))
+		if err != nil {
+			return false
+		}
 		res, err = client.Do(req)
 		return err == nil
 	}
@@ -337,6 +352,9 @@ func TestWebSocketHeader(t *testing.T) {
 	fn := func() bool {
 		client := &http.Client{}
 		req, err := http.NewRequest(http.MethodGet, path, nil)
+		if err != nil {
+			return false
+		}
 		res, err = client.Do(req)
 		return err == nil
 	}

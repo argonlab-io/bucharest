@@ -20,6 +20,7 @@ type Context interface {
 	SQL() *sql.DB
 	SQLX() *sqlx.DB
 	SetValue(key, val interface{})
+	Update(option *ContextOptions)
 }
 
 var ErrNoENV = errors.New("ENV is not present in this context")
