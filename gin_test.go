@@ -402,3 +402,40 @@ func TestHandlerControlNext(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
+
+func TestHandlerControlAbort(t *testing.T) {
+	ctx := NewContextWithOptions(nil)
+	assert.NotNil(t, ctx)
+
+	var path string
+	handler := func(ctx HTTPContext) HTTPError {
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+	middleware := func(ctx HTTPContext) HTTPError {
+		ctx.Abort()
+		assert.True(t, ctx.IsAborted())
+		return nil
+	}
+	ginHandlerFunc := NewGinHandlerFunc(ctx, handler)
+	assert.NotNil(t, ginHandlerFunc)
+
+	var err error
+	path, err = getCallingPath(ginHandlerFunc, NewGinHandlerFunc(ctx, middleware))
+	assert.NoError(t, err)
+
+	var res *http.Response
+	fn := func() bool {
+		client := &http.Client{}
+		req, err := http.NewRequest(http.MethodGet, path, nil)
+		if err != nil {
+			return false
+		}
+		res, err = client.Do(req)
+		return err == nil
+	}
+
+	utils.RunUntil(fn, time.Second*4)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+}
