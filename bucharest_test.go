@@ -211,4 +211,22 @@ func TestUpdateContext(t *testing.T) {
 	assert.NotSame(t, redis_, ctx.Redis())
 	assert.NotSame(t, sql_, ctx.SQL())
 	assert.NotSame(t, sqlx_, ctx.SQLX())
+
+	ctx.Update(&ContextOptions{
+		ENV:    newENV,
+		GORM:   gorm_,
+		Logrus: logrus_,
+		Redis:  redis_,
+		SQL:    sql_,
+		SQLX:   sqlx_,
+	})
+
+	assert.Same(t, newENV, ctx.ENV())
+	assert.NoError(t, err)
+	assert.Same(t, gorm_, ctx.GORM())
+	assert.Same(t, logrus_, ctx.Log())
+	assert.Same(t, redis_, ctx.Redis())
+	assert.Same(t, sql_, ctx.SQL())
+	assert.Same(t, sqlx_, ctx.SQLX())
+
 }
