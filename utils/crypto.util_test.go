@@ -34,3 +34,12 @@ func TestHashing(t *testing.T) {
 	hash := NewEncoder(&foobar).Hash(crypto.SHA256)
 	assert.Equal(t, fmt.Sprintf("%x", hash), "c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2")
 }
+
+func TestHex(t *testing.T) {
+	foobar := "foobar"
+	hex := NewEncoder(&foobar).Hex(crypto.SHA256)
+	assert.Equal(t, hex, "c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2")
+
+	hex = NewEncoder(&foobar).Hex(0)
+	assert.Equal(t, hex, "666f6f626172")
+}
