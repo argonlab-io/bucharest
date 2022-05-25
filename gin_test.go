@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"testing"
@@ -82,7 +81,6 @@ func TestNewGinHandlerFuncWithData(t *testing.T) {
 	j := make(map[string]interface{}, 0)
 	err = utils.JSONMapper(res.Body, &j)
 	assert.NoError(t, err)
-	log.Println(j)
 	assert.Equal(t, j["message"].(string), "foobar")
 }
 

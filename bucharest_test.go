@@ -121,12 +121,94 @@ func TestNewContextWithOptionsWithAllAddtionalOptions(t *testing.T) {
 		t.Errorf("NewContextWithOptions().String() = %q want %q", got, want)
 	}
 
-	assert.Equal(t, env, ctx.ENV())
+	assert.Same(t, env, ctx.ENV())
 	err = os.Remove(envTempPath)
 	assert.NoError(t, err)
-	assert.Equal(t, gorm, ctx.GORM())
-	assert.Equal(t, logrus, ctx.Log())
-	assert.Equal(t, redis_, ctx.Redis())
-	assert.Equal(t, sql_, ctx.SQL())
-	assert.Equal(t, sqlx_, ctx.SQLX())
+	assert.Same(t, gorm, ctx.GORM())
+	assert.Same(t, logrus, ctx.Log())
+	assert.Same(t, redis_, ctx.Redis())
+	assert.Same(t, sql_, ctx.SQL())
+	assert.Same(t, sqlx_, ctx.SQLX())
+}
+
+func TestUpdateContext(t *testing.T) {
+	// prepare env
+	envTempPath := "/tmp/.env"
+	tempEnvFile, err := os.Create(envTempPath)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, tempEnvFile)
+
+	_, err = tempEnvFile.Write(envFile)
+	assert.NoError(t, err)
+
+	err = tempEnvFile.Close()
+	assert.NoError(t, err)
+
+	env, err := NewENV(envTempPath)
+	assert.NoError(t, err)
+	assert.NotNil(t, env)
+
+	ctx := NewContextWithOptions(&ContextOptions{
+		Parent: context.Background(),
+		ENV:    env,
+		GORM:   &gorm.DB{},
+		Logrus: &logrus.Logger{},
+		Redis:  &redis.Client{},
+		SQL:    &sql.DB{},
+		SQLX:   &sqlx.DB{},
+	})
+	err = os.Remove(envTempPath)
+	assert.NoError(t, err)
+
+	if ctx == nil {
+		t.Fatalf("NewContext returned nil")
+	}
+	select {
+	case x := <-ctx.Done():
+		t.Errorf("<-c.Done() == %v want nothing (it should block)", x)
+	default:
+	}
+	if got, want := fmt.Sprint(ctx), "bucharest.BuchatrestContext"; got != want {
+		t.Errorf("NewContextWithOptions().String() = %q want %q", got, want)
+	}
+
+	// prepare env
+	envTempPath = "/tmp/.env"
+	tempEnvFile, err = os.Create(envTempPath)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, tempEnvFile)
+
+	_, err = tempEnvFile.Write([]byte(``))
+	assert.NoError(t, err)
+
+	err = tempEnvFile.Close()
+	assert.NoError(t, err)
+
+	newENV, err := NewENV(envTempPath)
+	assert.NoError(t, err)
+	assert.NotNil(t, newENV)
+
+	// prepare Gorm
+	gorm_ := &gorm.DB{}
+
+	// Prepare Logrus
+	logrus_ := &logrus.Logger{}
+
+	// Prepare Redis
+	redis_ := &redis.Client{}
+
+	// Prepare sql
+	sql_ := &sql.DB{}
+
+	// Prepare sqlx
+	sqlx_ := &sqlx.DB{}
+
+	assert.NotSame(t, newENV, ctx.ENV())
+	err = os.Remove(envTempPath)
+	assert.NoError(t, err)
+	assert.NotSame(t, gorm_, ctx.GORM())
+	assert.NotSame(t, logrus_, ctx.Log())
+	assert.NotSame(t, redis_, ctx.Redis())
+	assert.NotSame(t, sql_, ctx.SQL())
+	assert.NotSame(t, sqlx_, ctx.SQLX())
 }

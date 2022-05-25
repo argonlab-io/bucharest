@@ -1,6 +1,9 @@
 package bucharest
 
-import "github.com/spf13/viper"
+import (
+	"github.com/google/uuid"
+	"github.com/spf13/viper"
+)
 
 type ENV interface {
 	All() Map
@@ -10,7 +13,7 @@ type ENV interface {
 	Viper() *viper.Viper
 }
 
-type env struct{}
+type env struct{ preventDefaultPointer uuid.UUID }
 
 func (e *env) All() Map {
 	return viper.AllSettings()
@@ -38,6 +41,5 @@ func NewENV(filename string) (ENV, error) {
 	viper.SetConfigType("env")
 
 	viper.AutomaticEnv()
-
-	return &env{}, viper.ReadInConfig()
+	return &env{preventDefaultPointer: uuid.New()}, viper.ReadInConfig()
 }

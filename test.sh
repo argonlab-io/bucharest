@@ -1,3 +1,3 @@
 #!/bin/sh
 
-go test ./... -cover -v
+go test ./... -cover -v -coverprofile=.coverage

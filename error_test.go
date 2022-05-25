@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"testing"
 
@@ -82,7 +81,6 @@ func TestInternalServerError(t *testing.T) {
 	assert.NoError(t, err)
 	message, ok := mapper["message"]
 	assert.True(t, ok)
-	log.Println(message, valErr.Error())
 	assert.Equal(t, message, valErr.Error())
 }
 
