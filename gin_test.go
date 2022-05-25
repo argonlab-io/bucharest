@@ -18,10 +18,15 @@ import (
 
 var DEFAULT_TEST_PORT int = 9000
 
-func getCallingPath(handler gin.HandlerFunc) (string, error) {
+func getCallingPath(handler gin.HandlerFunc, middlewares ...gin.HandlerFunc) (string, error) {
 	path := uuid.New().String()
 	g := gin.New()
 	gin.SetMode(gin.TestMode)
+	if len(middlewares) > 0 {
+		for _, middleware := range middlewares {
+			g.Use(middleware)
+		}
+	}
 	g.GET(fmt.Sprintf("/%s", path), handler)
 	var err error
 	avaiable_port := fmt.Sprint(DEFAULT_TEST_PORT)
@@ -344,6 +349,42 @@ func TestWebSocketHeader(t *testing.T) {
 
 	var err error
 	path, err = getCallingPath(ginHandlerFunc)
+	assert.NoError(t, err)
+
+	var res *http.Response
+	fn := func() bool {
+		client := &http.Client{}
+		req, err := http.NewRequest(http.MethodGet, path, nil)
+		if err != nil {
+			return false
+		}
+		res, err = client.Do(req)
+		return err == nil
+	}
+
+	utils.RunUntil(fn, time.Second*4)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+}
+
+func TestHandlerControlNext(t *testing.T) {
+	ctx := NewContextWithOptions(nil)
+	assert.NotNil(t, ctx)
+
+	var path string
+	handler := func(ctx HTTPContext) HTTPError {
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+	middleware := func(ctx HTTPContext) HTTPError {
+		ctx.Next()
+		return nil
+	}
+	ginHandlerFunc := NewGinHandlerFunc(ctx, handler)
+	assert.NotNil(t, ginHandlerFunc)
+
+	var err error
+	path, err = getCallingPath(ginHandlerFunc, NewGinHandlerFunc(ctx, middleware))
 	assert.NoError(t, err)
 
 	var res *http.Response
