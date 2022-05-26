@@ -745,6 +745,9 @@ func TestQuery(t *testing.T) {
 		assert.Equal(t, queryMap["foo"], "bar")
 		assert.Equal(t, queryMap["foz"], "baz")
 
+		queryMap, ok = ctx.GetQueryMap("map")
+		assert.True(t, ok)
+		
 		ctx.Status(http.StatusNoContent)
 		return nil
 	}
