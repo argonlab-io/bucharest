@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -33,6 +34,41 @@ func getCallingPath(handler gin.HandlerFunc, middlewares ...gin.HandlerFunc) (st
 	DEFAULT_TEST_PORT++
 	go func() { err = g.Run(fmt.Sprintf(":%s", avaiable_port)) }()
 	return fmt.Sprintf("http://0.0.0.0:%s/%s", avaiable_port, path), err
+}
+
+func getCallingPathWithParamterAndQuery(handler gin.HandlerFunc, param string, query map[string]string, middlewares ...gin.HandlerFunc) (string, error) {
+	path := uuid.New().String()
+	g := gin.New()
+	gin.SetMode(gin.TestMode)
+	if len(middlewares) > 0 {
+		for _, middleware := range middlewares {
+			g.Use(middleware)
+		}
+	}
+	endpoint := fmt.Sprintf("/%s", path)
+	if param != "" {
+		endpoint = fmt.Sprintf("%s/:param", endpoint)
+	}
+	g.GET(endpoint, handler)
+	var err error
+	avaiable_port := fmt.Sprint(DEFAULT_TEST_PORT)
+	DEFAULT_TEST_PORT++
+	go func() { err = g.Run(fmt.Sprintf(":%s", avaiable_port)) }()
+	url := fmt.Sprintf("http://0.0.0.0:%s/%s/%s", avaiable_port, path, param)
+	if param == "" {
+		url = strings.TrimSuffix(url, "/")
+	}
+	if len(query) > 0 {
+		params := "?"
+		for key, value := range query {
+			params = fmt.Sprintf("%s%s=%s&", params, key, value)
+		}
+		params = strings.TrimSuffix(params, "&")
+		re, _ := regexp.Compile(`\{(.*?)\}`)
+		params = re.ReplaceAllString(params, "")
+		url = fmt.Sprintf("%s%s", url, params)
+	}
+	return url, err
 }
 
 func TestNewGinHandlerFunc(t *testing.T) {
@@ -624,6 +660,124 @@ func TestGetterAndSetter(t *testing.T) {
 			return false
 		}
 		res, err = client.Do(req)
+		return err == nil
+	}
+
+	utils.RunUntil(fn, time.Second*4)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+}
+
+func TestParam(t *testing.T) {
+	ctx := NewContextWithOptions(nil)
+	assert.NotNil(t, ctx)
+
+	var path string
+	handler := func(ctx HTTPContext) HTTPError {
+		param := ctx.Param("param")
+		assert.Equal(t, param, "param")
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+	middleware := func(ctx HTTPContext) HTTPError {
+		return nil
+	}
+	ginHandlerFunc := NewGinHandlerFunc(ctx, handler)
+	assert.NotNil(t, ginHandlerFunc)
+
+	var err error
+	path, err = getCallingPathWithParamterAndQuery(ginHandlerFunc, "param", map[string]string{}, NewGinHandlerFunc(ctx, middleware))
+	assert.NoError(t, err)
+
+	var res *http.Response
+	fn := func() bool {
+		client := &http.Client{}
+		req, err := http.NewRequest(http.MethodGet, path, nil)
+		if err != nil {
+			return false
+		}
+		res, err = client.Do(req)
+
+		if res != nil {
+			assert.NoError(t, err)
+			assert.Equal(t, res.StatusCode, http.StatusNoContent)
+		}
+
+		return err == nil
+	}
+
+	utils.RunUntil(fn, time.Second*4)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+}
+
+func TestQuery(t *testing.T) {
+	ctx := NewContextWithOptions(nil)
+	assert.NotNil(t, ctx)
+
+	var path string
+	handler := func(ctx HTTPContext) HTTPError {
+		value := ctx.Query("key")
+		assert.Equal(t, value, "value")
+
+		bar := ctx.Query("foo")
+		assert.Equal(t, bar, "bar")
+
+		blank, ok := ctx.GetQuery("blank")
+		assert.False(t, ok)
+		assert.Empty(t, blank)
+
+		defaultQuery := ctx.DefaultQuery("blank", "default")
+		assert.Equal(t, defaultQuery, "default")
+
+		queryArray := ctx.QueryArray("arr")
+		assert.Len(t, queryArray, 2)
+		_, containFoobar := utils.ArrayStringContians(queryArray, "foobar")
+		_, containFozbaz := utils.ArrayStringContians(queryArray, "fozbaz")
+		assert.True(t, containFoobar)
+		assert.True(t, containFozbaz)
+
+		queryArray, ok = ctx.GetQueryArray("arr")
+		assert.True(t, ok)
+
+		queryMap := ctx.QueryMap("map")
+		assert.Len(t, queryMap, 2)
+		assert.Equal(t, queryMap["foo"], "bar")
+		assert.Equal(t, queryMap["foz"], "baz")
+
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+	middleware := func(ctx HTTPContext) HTTPError {
+		return nil
+	}
+	ginHandlerFunc := NewGinHandlerFunc(ctx, handler)
+	assert.NotNil(t, ginHandlerFunc)
+
+	var err error
+	path, err = getCallingPathWithParamterAndQuery(ginHandlerFunc, "", map[string]string{
+		"key":      "value",
+		"foo":      "bar",
+		"arr{0}":   "foobar",
+		"arr{1}":   "fozbaz",
+		"map[foo]": "bar",
+		"map[foz]": "baz",
+	}, NewGinHandlerFunc(ctx, middleware))
+
+	var res *http.Response
+	fn := func() bool {
+		client := &http.Client{}
+		req, err := http.NewRequest(http.MethodGet, path, nil)
+		if err != nil {
+			return false
+		}
+		res, err = client.Do(req)
+
+		if res != nil {
+			assert.NoError(t, err)
+			assert.Equal(t, res.StatusCode, http.StatusNoContent)
+		}
+
 		return err == nil
 	}
 
