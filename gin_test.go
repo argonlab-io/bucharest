@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"testing"
@@ -19,7 +20,7 @@ import (
 
 var DEFAULT_TEST_PORT int = 9000
 
-func getCallingPath(handler gin.HandlerFunc, middlewares ...gin.HandlerFunc) (string, error) {
+func getCallingPath(method string, handler gin.HandlerFunc, middlewares ...gin.HandlerFunc) (string, error) {
 	path := uuid.New().String()
 	g := gin.New()
 	gin.SetMode(gin.TestMode)
@@ -28,7 +29,20 @@ func getCallingPath(handler gin.HandlerFunc, middlewares ...gin.HandlerFunc) (st
 			g.Use(middleware)
 		}
 	}
-	g.GET(fmt.Sprintf("/%s", path), handler)
+	switch method {
+	case http.MethodGet:
+		{
+			g.GET(fmt.Sprintf("/%s", path), handler)
+		}
+	case http.MethodPost:
+		{
+			g.POST(fmt.Sprintf("/%s", path), handler)
+		}
+	default:
+		{
+			panic("not implemented")
+		}
+	}
 	var err error
 	avaiable_port := fmt.Sprint(DEFAULT_TEST_PORT)
 	DEFAULT_TEST_PORT++
@@ -82,7 +96,7 @@ func TestNewGinHandlerFunc(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err := getCallingPath(ginHandlerFunc)
+	path, err := getCallingPath(http.MethodGet, ginHandlerFunc)
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -107,7 +121,7 @@ func TestNewGinHandlerFuncWithData(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err := getCallingPath(ginHandlerFunc)
+	path, err := getCallingPath(http.MethodGet, ginHandlerFunc)
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -138,7 +152,7 @@ func TestHandleInfo(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err := getCallingPath(ginHandlerFunc)
+	path, err := getCallingPath(http.MethodGet, ginHandlerFunc)
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -168,7 +182,7 @@ func TestHandleFullPath(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err = getCallingPath(ginHandlerFunc)
+	path, err = getCallingPath(http.MethodGet, ginHandlerFunc)
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -200,7 +214,7 @@ func TestIP(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err = getCallingPath(ginHandlerFunc)
+	path, err = getCallingPath(http.MethodGet, ginHandlerFunc)
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -235,7 +249,7 @@ func TestCookie(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err = getCallingPath(ginHandlerFunc)
+	path, err = getCallingPath(http.MethodGet, ginHandlerFunc)
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -271,7 +285,7 @@ func TestContentType(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err = getCallingPath(ginHandlerFunc)
+	path, err = getCallingPath(http.MethodGet, ginHandlerFunc)
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -307,7 +321,7 @@ func TestGetHeader(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err = getCallingPath(ginHandlerFunc)
+	path, err = getCallingPath(http.MethodGet, ginHandlerFunc)
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -349,7 +363,7 @@ func TestGetRawData(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err = getCallingPath(ginHandlerFunc)
+	path, err = getCallingPath(http.MethodGet, ginHandlerFunc)
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -384,7 +398,7 @@ func TestWebSocketHeader(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err = getCallingPath(ginHandlerFunc)
+	path, err = getCallingPath(http.MethodGet, ginHandlerFunc)
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -420,7 +434,7 @@ func TestHandlerControlNext(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err = getCallingPath(ginHandlerFunc, NewGinHandlerFunc(ctx, middleware))
+	path, err = getCallingPath(http.MethodGet, ginHandlerFunc, NewGinHandlerFunc(ctx, middleware))
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -457,7 +471,7 @@ func TestHandlerControlAbort(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err = getCallingPath(ginHandlerFunc, NewGinHandlerFunc(ctx, middleware))
+	path, err = getCallingPath(http.MethodGet, ginHandlerFunc, NewGinHandlerFunc(ctx, middleware))
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -494,7 +508,7 @@ func TestHandlerControlAbortWithStatus(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err = getCallingPath(ginHandlerFunc, NewGinHandlerFunc(ctx, middleware))
+	path, err = getCallingPath(http.MethodGet, ginHandlerFunc, NewGinHandlerFunc(ctx, middleware))
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -535,7 +549,7 @@ func TestHandlerControlAbortWithStatusJSON(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err = getCallingPath(ginHandlerFunc, NewGinHandlerFunc(ctx, middleware))
+	path, err = getCallingPath(http.MethodGet, ginHandlerFunc, NewGinHandlerFunc(ctx, middleware))
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -649,7 +663,7 @@ func TestGetterAndSetter(t *testing.T) {
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
-	path, err = getCallingPath(ginHandlerFunc, NewGinHandlerFunc(ctx, middleware))
+	path, err = getCallingPath(http.MethodGet, ginHandlerFunc, NewGinHandlerFunc(ctx, middleware))
 	assert.NoError(t, err)
 
 	var res *http.Response
@@ -738,6 +752,7 @@ func TestQuery(t *testing.T) {
 		assert.True(t, containFozbaz)
 
 		queryArray, ok = ctx.GetQueryArray("arr")
+		assert.Equal(t, queryArray, ctx.QueryArray("arr"))
 		assert.True(t, ok)
 
 		queryMap := ctx.QueryMap("map")
@@ -746,8 +761,9 @@ func TestQuery(t *testing.T) {
 		assert.Equal(t, queryMap["foz"], "baz")
 
 		queryMap, ok = ctx.GetQueryMap("map")
+		assert.Equal(t, queryMap, ctx.QueryMap("map"))
 		assert.True(t, ok)
-		
+
 		ctx.Status(http.StatusNoContent)
 		return nil
 	}
@@ -776,6 +792,92 @@ func TestQuery(t *testing.T) {
 		}
 		res, err = client.Do(req)
 
+		if res != nil {
+			assert.NoError(t, err)
+			assert.Equal(t, res.StatusCode, http.StatusNoContent)
+		}
+
+		return err == nil
+	}
+
+	utils.RunUntil(fn, time.Second*4)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+}
+
+func TestURLEncodedForm(t *testing.T) {
+	ctx := NewContextWithOptions(nil)
+	assert.NotNil(t, ctx)
+
+	var path string
+	handler := func(ctx HTTPContext) HTTPError {
+		contentType := ctx.ContentType()
+		assert.Equal(t, contentType, gin.MIMEPOSTForm)
+
+		bar := ctx.PostForm("foo")
+		assert.Equal(t, bar, "bar")
+
+		baz := ctx.DefaultPostForm("foz", "baz")
+		assert.Equal(t, baz, "baz")
+
+		bar, fooExist := ctx.GetPostForm("foo")
+		assert.True(t, fooExist)
+		assert.Equal(t, bar, "bar")
+
+		baz, fozExist := ctx.GetPostForm("foz")
+		assert.False(t, fozExist)
+		assert.Empty(t, baz)
+
+		arr := ctx.PostFormArray("arr")
+		assert.Len(t, arr, 2)
+		_, contianFoobar := utils.ArrayStringContians(arr, "foobar")
+		assert.True(t, contianFoobar)
+		_, contianFozbaz := utils.ArrayStringContians(arr, "fozbaz")
+		assert.True(t, contianFozbaz)
+
+		getArr, ok := ctx.GetPostFormArray("arr")
+		assert.True(t, ok)
+		assert.Equal(t, arr, getArr)
+
+		formMap := ctx.PostFormMap("map")
+		assert.Len(t, formMap, 2)
+		assert.Equal(t, formMap["foo"], "bar")
+		assert.Equal(t, formMap["foz"], "baz")
+
+		getFormMap, ok := ctx.GetPostFormMap("map")
+		assert.True(t, ok)
+		assert.Equal(t, formMap, getFormMap)
+
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+	middleware := func(ctx HTTPContext) HTTPError {
+		return nil
+	}
+	ginHandlerFunc := NewGinHandlerFunc(ctx, handler)
+	ginMiddleware := NewGinHandlerFunc(ctx, middleware)
+	assert.NotNil(t, ginHandlerFunc)
+	path, err := getCallingPath(http.MethodPost, ginHandlerFunc, ginMiddleware)
+
+	var res *http.Response
+	fn := func() bool {
+		client := &http.Client{}
+		data := &url.Values{}
+		data.Add("foo", "bar")
+		data.Add("arr{0}", "foobar")
+		data.Add("arr{1}", "fozbaz")
+		data.Add("map[foo]", "bar")
+		data.Add("map[foz]", "baz")
+		re, _ := regexp.Compile(`\{(.*?)\}`)
+		decodedValue, _ := url.QueryUnescape(data.Encode())
+		formData := re.ReplaceAllString(decodedValue, "")
+		req, err := http.NewRequest(http.MethodPost, path, strings.NewReader(formData))
+		if err != nil {
+			return false
+		}
+		req.Header.Add("Content-Type", gin.MIMEPOSTForm)
+
+		res, err = client.Do(req)
 		if res != nil {
 			assert.NoError(t, err)
 			assert.Equal(t, res.StatusCode, http.StatusNoContent)
