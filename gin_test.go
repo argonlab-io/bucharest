@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -876,6 +879,101 @@ func TestURLEncodedForm(t *testing.T) {
 			return false
 		}
 		req.Header.Add("Content-Type", gin.MIMEPOSTForm)
+
+		res, err = client.Do(req)
+		if res != nil {
+			assert.NoError(t, err)
+			assert.Equal(t, res.StatusCode, http.StatusNoContent)
+		}
+
+		return err == nil
+	}
+
+	utils.RunUntil(fn, time.Second*4)
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+}
+
+func TestMultipartForm(t *testing.T) {
+	ctx := NewContextWithOptions(nil)
+	assert.NotNil(t, ctx)
+
+	fileContent := utils.NewEncoder(nil).Random(8).Bytes()
+	file := utils.NewFile("file", fileContent)
+	var path string
+	handler := func(ctx HTTPContext) HTTPError {
+		contentType := ctx.ContentType()
+		assert.Equal(t, contentType, gin.MIMEMultipartPOSTForm)
+
+		multipartFormFileHeader, err := ctx.FormFile(file.Name())
+		assert.NotEmpty(t, multipartFormFileHeader)
+		assert.NoError(t, err)
+
+		multipartFormFile, err := multipartFormFileHeader.Open()
+		assert.NotEmpty(t, multipartFormFile)
+		assert.NoError(t, err)
+
+		buffer := bytes.NewBuffer(make([]byte, 0))
+		_, err = io.Copy(buffer, multipartFormFile)
+		assert.NoError(t, err)
+
+		err = multipartFormFile.Close()
+		assert.NoError(t, err)
+
+		assert.Equal(t, buffer.Bytes(), file.Value())
+
+		multipartForm, err := ctx.MultipartForm()
+		assert.NoError(t, err)
+		fileHeader := multipartForm.File[file.Name()][0]
+		assert.Equal(t, multipartFormFileHeader, fileHeader)
+
+		savedPath := fmt.Sprintf("/tmp/%s", uuid.New().String())
+		err = ctx.SaveUploadedFile(fileHeader, savedPath)
+		assert.NoError(t, err)
+
+		openFile, err := os.Open(savedPath)
+		assert.NoError(t, err)
+
+		savedFile := bytes.NewBuffer(make([]byte, 0))
+		_, err = io.Copy(savedFile, openFile)
+		openFile.Close()
+		assert.NoError(t, err)
+		assert.Equal(t, savedFile.Bytes(), file.Value())
+
+		err = os.Remove(savedPath)
+		assert.NoError(t, err)
+
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+	middleware := func(ctx HTTPContext) HTTPError {
+		return nil
+	}
+	ginHandlerFunc := NewGinHandlerFunc(ctx, handler)
+	ginMiddleware := NewGinHandlerFunc(ctx, middleware)
+	assert.NotNil(t, ginHandlerFunc)
+	path, err := getCallingPath(http.MethodPost, ginHandlerFunc, ginMiddleware)
+
+	var res *http.Response
+	fn := func() bool {
+		client := &http.Client{}
+		buffer := bytes.NewBuffer([]byte{})
+		form := multipart.NewWriter(buffer)
+
+		part, err := form.CreateFormFile(file.Name(), "file")
+		assert.NoError(t, err)
+
+		_, err = io.Copy(part, file.Reader())
+		assert.NoError(t, err)
+
+		err = form.Close()
+		assert.NoError(t, err)
+
+		req, err := http.NewRequest(http.MethodPost, path, buffer)
+		if err != nil {
+			return false
+		}
+		req.Header.Add("Content-Type", form.FormDataContentType())
 
 		res, err = client.Do(req)
 		if res != nil {
