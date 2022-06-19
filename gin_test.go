@@ -21,6 +21,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type binderTest struct {
+	Foo string `form:"foo" json:"foo" xml:"foo"  binding:"required"`
+}
+
 var DEFAULT_TEST_PORT int = 9000
 
 func getCallingPath(method string, handler gin.HandlerFunc, middlewares ...gin.HandlerFunc) (string, error) {
@@ -165,7 +169,6 @@ func TestHandleInfo(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -195,7 +198,6 @@ func TestHandleFullPath(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -232,7 +234,6 @@ func TestIP(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -268,7 +269,6 @@ func TestCookie(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -277,10 +277,9 @@ func TestContentType(t *testing.T) {
 	assert.NotNil(t, ctx)
 
 	var path string
-	applicationJSONContentType := "application/json"
 	handler := func(ctx HTTPContext) HTTPError {
 		contentType := ctx.ContentType()
-		assert.Equal(t, contentType, applicationJSONContentType)
+		assert.Equal(t, contentType, gin.MIMEJSON)
 		ctx.Status(http.StatusNoContent)
 		return nil
 	}
@@ -298,7 +297,7 @@ func TestContentType(t *testing.T) {
 		if err != nil {
 			return false
 		}
-		req.Header.Set("Content-Type", applicationJSONContentType)
+		req.Header.Set("Content-Type", gin.MIMEJSON)
 		res, err = client.Do(req)
 		return err == nil
 	}
@@ -340,7 +339,6 @@ func TestGetHeader(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -381,7 +379,6 @@ func TestGetRawData(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -416,7 +413,6 @@ func TestWebSocketHeader(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -452,7 +448,6 @@ func TestHandlerControlNext(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -489,7 +484,6 @@ func TestHandlerControlAbort(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -529,7 +523,6 @@ func TestHandlerControlAbortWithStatus(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -577,7 +570,6 @@ func TestHandlerControlAbortWithStatusJSON(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -681,7 +673,6 @@ func TestGetterAndSetter(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -724,7 +715,6 @@ func TestParam(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -776,8 +766,7 @@ func TestQuery(t *testing.T) {
 	ginHandlerFunc := NewGinHandlerFunc(ctx, handler)
 	assert.NotNil(t, ginHandlerFunc)
 
-	var err error
-	path, err = getCallingPathWithParamterAndQuery(ginHandlerFunc, "", map[string]string{
+	path, err := getCallingPathWithParamterAndQuery(ginHandlerFunc, "", map[string]string{
 		"key":      "value",
 		"foo":      "bar",
 		"arr{0}":   "foobar",
@@ -785,6 +774,7 @@ func TestQuery(t *testing.T) {
 		"map[foo]": "bar",
 		"map[foz]": "baz",
 	}, NewGinHandlerFunc(ctx, middleware))
+	assert.NoError(t, err)
 
 	var res *http.Response
 	fn := func() bool {
@@ -804,7 +794,6 @@ func TestQuery(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -861,6 +850,7 @@ func TestURLEncodedForm(t *testing.T) {
 	ginMiddleware := NewGinHandlerFunc(ctx, middleware)
 	assert.NotNil(t, ginHandlerFunc)
 	path, err := getCallingPath(http.MethodPost, ginHandlerFunc, ginMiddleware)
+	assert.NoError(t, err)
 
 	var res *http.Response
 	fn := func() bool {
@@ -890,7 +880,6 @@ func TestURLEncodedForm(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
-	assert.NoError(t, err)
 	assert.NotNil(t, res)
 }
 
@@ -953,6 +942,7 @@ func TestMultipartForm(t *testing.T) {
 	ginMiddleware := NewGinHandlerFunc(ctx, middleware)
 	assert.NotNil(t, ginHandlerFunc)
 	path, err := getCallingPath(http.MethodPost, ginHandlerFunc, ginMiddleware)
+	assert.NoError(t, err)
 
 	var res *http.Response
 	fn := func() bool {
@@ -985,6 +975,111 @@ func TestMultipartForm(t *testing.T) {
 	}
 
 	utils.RunUntil(fn, time.Second*4)
+	assert.NotNil(t, res)
+}
+
+func TestBinder(t *testing.T) {
+	ctx := NewContextWithOptions(nil)
+	assert.NotNil(t, ctx)
+
+	middleware := func(ctx HTTPContext) HTTPError {
+		return nil
+	}
+	ginMiddleware := NewGinHandlerFunc(ctx, middleware)
+
+	// TestBind
+	handlerBind := func(ctx HTTPContext) HTTPError {
+		m := make(map[string]interface{}, 0)
+		err := ctx.Bind(&m)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, m)
+		assert.Equal(t, m["foo"], "bar")
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+	ginHandlerFunc := NewGinHandlerFunc(ctx, handlerBind)
+	assert.NotNil(t, ginHandlerFunc)
+
+	path, err := getCallingPath(http.MethodPost, ginHandlerFunc, ginMiddleware)
 	assert.NoError(t, err)
+
+	var res *http.Response
+	jsonRequest := func() bool {
+		client := &http.Client{}
+		buffer := bytes.NewBuffer([]byte(`{"foo":"bar"}`))
+
+		req, err := http.NewRequest(http.MethodPost, path, buffer)
+		if err != nil {
+			return false
+		}
+		req.Header.Set("Content-Type", gin.MIMEJSON)
+		res, err = client.Do(req)
+		if res != nil {
+			assert.NoError(t, err)
+			assert.Equal(t, res.StatusCode, http.StatusNoContent)
+		}
+
+		return err == nil
+	}
+
+	utils.RunUntil(jsonRequest, time.Second*4)
+	assert.NotNil(t, res)
+
+	// TestBindJSON
+	handlerBindJSON := func(ctx HTTPContext) HTTPError {
+		m := make(map[string]interface{}, 0)
+		err := ctx.BindJSON(&m)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, m)
+		assert.Equal(t, m["foo"], "bar")
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+
+	ginHandlerFunc = NewGinHandlerFunc(ctx, handlerBindJSON)
+	assert.NotNil(t, ginHandlerFunc)
+
+	path, err = getCallingPath(http.MethodPost, ginHandlerFunc, ginMiddleware)
+	assert.NoError(t, err)
+
+	utils.RunUntil(jsonRequest, time.Second*4)
+	assert.NotNil(t, res)
+
+	// TestBindXML
+	handlerBindXML := func(ctx HTTPContext) HTTPError {
+		m := &binderTest{}
+		err := ctx.BindXML(m)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, m)
+		assert.Equal(t, m.Foo, "bar")
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+
+	xmlRequest := func() bool {
+		client := &http.Client{}
+		buffer := bytes.NewBuffer([]byte(`<?xml version="1.0" encoding="UTF-8"?><root><foo>bar</foo></root>`))
+
+		req, err := http.NewRequest(http.MethodPost, path, buffer)
+		if err != nil {
+			return false
+		}
+		req.Header.Set("Content-Type", gin.MIMEXML)
+		res, err = client.Do(req)
+		if res != nil {
+			assert.NoError(t, err)
+			assert.Equal(t, res.StatusCode, http.StatusNoContent)
+		}
+
+		return err == nil
+	}
+
+	ginHandlerFunc = NewGinHandlerFunc(ctx, handlerBindXML)
+	assert.NotNil(t, ginHandlerFunc)
+
+	path, err = getCallingPath(http.MethodPost, ginHandlerFunc, ginMiddleware)
+	assert.NoError(t, err)
+
+	utils.RunUntil(xmlRequest, time.Second*4)
 	assert.NotNil(t, res)
 }
