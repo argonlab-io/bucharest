@@ -1064,6 +1064,7 @@ func TestBinder(t *testing.T) {
 		if err != nil {
 			return false
 		}
+
 		req.Header.Set("Content-Type", gin.MIMEXML)
 		res, err = client.Do(req)
 		if res != nil {
@@ -1081,5 +1082,44 @@ func TestBinder(t *testing.T) {
 	assert.NoError(t, err)
 
 	utils.RunUntil(xmlRequest, time.Second*4)
+	assert.NotNil(t, res)
+
+	// TestBindQuery
+	handlerBindQuery := func(ctx HTTPContext) HTTPError {
+		m := &binderTest{}
+		err := ctx.BindQuery(m)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, m)
+		assert.Equal(t, m.Foo, "bar")
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+
+	ginHandlerFunc = NewGinHandlerFunc(ctx, handlerBindQuery)
+	assert.NotNil(t, ginHandlerFunc)
+
+	path, err = getCallingPathWithParamterAndQuery(ginHandlerFunc, "", map[string]string{
+		"foo": "bar",
+	}, ginMiddleware)
+	assert.NoError(t, err)
+
+	queryRequest := func() bool {
+		client := &http.Client{}
+
+		req, err := http.NewRequest(http.MethodGet, path, nil)
+		if err != nil {
+			return false
+		}
+
+		res, err = client.Do(req)
+		if res != nil {
+			assert.NoError(t, err)
+			assert.Equal(t, res.StatusCode, http.StatusNoContent)
+		}
+
+		return err == nil
+	}
+
+	utils.RunUntil(queryRequest, time.Second*4)
 	assert.NotNil(t, res)
 }
