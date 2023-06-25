@@ -23,12 +23,12 @@ func TestAddValuesToContext(t *testing.T) {
 		t.Errorf("NewContext().String() = %q want %q", got, want)
 	}
 
-	key1 := 1
+	key1 := "key1"
 	value1 := "one"
-	key2 := "two"
+	key2 := "key2"
 	value2 := 2
 
-	ctx = AddValuesToContext(NewContextWithOptions(&ContextOptions{Parent: ctx}), MapAny{
+	ctx = AddValuesToContext(NewContextWithOptions(&ContextOptions{Parent: ctx}), map[string]any{
 		key1: value1,
 		key2: value2,
 	})

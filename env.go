@@ -6,7 +6,7 @@ import (
 )
 
 type ENV interface {
-	All() Map
+	All() map[string]any
 	Bool(key string) bool
 	Int(key string) int
 	String(key string) string
@@ -15,7 +15,7 @@ type ENV interface {
 
 type env struct{ preventDefaultPointer uuid.UUID }
 
-func (e *env) All() Map {
+func (e *env) All() map[string]any {
 	return viper.AllSettings()
 }
 

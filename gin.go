@@ -40,7 +40,7 @@ func NewGinHandlerFunc(ctx Context, handlerFunc HandlerFunc) gin.HandlerFunc {
 	}
 }
 
-func NewGinHandlerFuncWithData(ctx Context, handlerFunc HandlerFuncWithData, data Map) gin.HandlerFunc {
+func NewGinHandlerFuncWithData(ctx Context, handlerFunc HandlerFuncWithData, data map[string]any) gin.HandlerFunc {
 	return func(g *gin.Context) {
 		httpError := handlerFunc(defaultHttpContextWithGin(ctx, g), data)
 		if httpError != nil {
@@ -384,7 +384,6 @@ func (rh *ginResponseHeader) SetAccepted(formats ...string) {
 	rh.gin.SetAccepted(formats...)
 }
 
-//
 type ginResponseBody struct {
 	gin *gin.Context
 }
@@ -513,7 +512,7 @@ func (h *httpContextWithGin) Gin() *gin.Context {
 	return ctx
 }
 
-func GinLoggerWithConfig(ctx HTTPContext, data Map) HTTPError {
+func GinLoggerWithConfig(ctx HTTPContext, data map[string]any) HTTPError {
 	conf, logLevelFromGinParam := getLogConfigAndLogLevel(data)
 
 	formatter := conf.Formatter
@@ -574,7 +573,7 @@ func GinLoggerWithConfig(ctx HTTPContext, data Map) HTTPError {
 
 type LogLevelFromGinParam func(*gin.LogFormatterParams) logrus.Level
 
-func getLogConfigAndLogLevel(data Map) (*gin.LoggerConfig, LogLevelFromGinParam) {
+func getLogConfigAndLogLevel(data map[string]any) (*gin.LoggerConfig, LogLevelFromGinParam) {
 	conf, ok := data["conf"].(*gin.LoggerConfig)
 	if !ok {
 		conf = &gin.LoggerConfig{}

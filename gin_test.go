@@ -121,10 +121,10 @@ func TestNewGinHandlerFuncWithData(t *testing.T) {
 	ctx := NewContextWithOptions(nil)
 	assert.NotNil(t, ctx)
 
-	handler := func(ctx HTTPContext, data Map) HTTPError {
+	handler := func(ctx HTTPContext, data map[string]any) HTTPError {
 		return NewBadRequestError(errors.New(data["message"].(string)))
 	}
-	ginHandlerFunc := NewGinHandlerFuncWithData(ctx, handler, Map{"message": "foobar"})
+	ginHandlerFunc := NewGinHandlerFuncWithData(ctx, handler, map[string]any{"message": "foobar"})
 	assert.NotNil(t, ginHandlerFunc)
 
 	var err error
