@@ -1,3 +1,3 @@
 #!/bin/sh
 
-go test ./... -cover -v -coverprofile=.coverage
+go test ./... -coverprofile=coverage.out -json > test-report.out

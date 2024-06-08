@@ -15,6 +15,7 @@ import (
 	"time"
 
 	. "github.com/argonlab-io/bucharest"
+	"github.com/argonlab-io/bucharest/consts"
 	"github.com/argonlab-io/bucharest/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -297,7 +298,7 @@ func TestContentType(t *testing.T) {
 		if err != nil {
 			return false
 		}
-		req.Header.Set("Content-Type", gin.MIMEJSON)
+		req.Header.Set(string(consts.ContentType), gin.MIMEJSON)
 		res, err = client.Do(req)
 		return err == nil
 	}
@@ -868,7 +869,7 @@ func TestURLEncodedForm(t *testing.T) {
 		if err != nil {
 			return false
 		}
-		req.Header.Add("Content-Type", gin.MIMEPOSTForm)
+		req.Header.Add(string(consts.ContentType), gin.MIMEPOSTForm)
 
 		res, err = client.Do(req)
 		if res != nil {
@@ -963,7 +964,7 @@ func TestMultipartForm(t *testing.T) {
 		if err != nil {
 			return false
 		}
-		req.Header.Add("Content-Type", form.FormDataContentType())
+		req.Header.Add(string(consts.ContentType), form.FormDataContentType())
 
 		res, err = client.Do(req)
 		if res != nil {
@@ -1012,7 +1013,7 @@ func TestBinder(t *testing.T) {
 		if err != nil {
 			return false
 		}
-		req.Header.Set("Content-Type", gin.MIMEJSON)
+		req.Header.Set(string(consts.ContentType), gin.MIMEJSON)
 		res, err = client.Do(req)
 		if res != nil {
 			assert.NoError(t, err)
@@ -1065,7 +1066,7 @@ func TestBinder(t *testing.T) {
 			return false
 		}
 
-		req.Header.Set("Content-Type", gin.MIMEXML)
+		req.Header.Set(string(consts.ContentType), gin.MIMEXML)
 		res, err = client.Do(req)
 		if res != nil {
 			assert.NoError(t, err)
