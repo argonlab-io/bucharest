@@ -17,6 +17,15 @@ import (
 )
 
 const FOUND_NULL_CONTEXT_ERR_MSG = "Found null context."
+const BUCHAREST_CONTEXT_TYPE_NAME = "bucharest.BuchatrestContext"
+const TEMP_ENV_PATH = "/tmp/.env"
+const CONTEXT_DONE_ERR_MSG = "Context is done before expected. Got %v."
+
+func verifyContextTypeName(t *testing.T, ctx Context) {
+	if contextTypeName := fmt.Sprint(ctx); contextTypeName != BUCHAREST_CONTEXT_TYPE_NAME {
+		t.Errorf("Unexptected context type = %q, want %q.", contextTypeName, BUCHAREST_CONTEXT_TYPE_NAME)
+	}
+}
 
 func TestNewContextWithOptions(t *testing.T) {
 	ctx := NewContextWithOptions(nil)
@@ -25,12 +34,10 @@ func TestNewContextWithOptions(t *testing.T) {
 	}
 	select {
 	case x := <-ctx.Done():
-		t.Errorf("<-c.Done() == %v want nothing (it should block)", x)
+		t.Errorf(CONTEXT_DONE_ERR_MSG, x)
 	default:
 	}
-	if got, want := fmt.Sprint(ctx), "bucharest.BuchatrestContext"; got != want {
-		t.Errorf("NewContextWithOptions().String() = %q want %q", got, want)
-	}
+	verifyContextTypeName(t, ctx)
 }
 
 func TestNewContextWithOptionsFromParentContext(t *testing.T) {
@@ -40,12 +47,10 @@ func TestNewContextWithOptionsFromParentContext(t *testing.T) {
 	}
 	select {
 	case x := <-ctx.Done():
-		t.Errorf("<-c.Done() == %v want nothing (it should block)", x)
+		t.Errorf(CONTEXT_DONE_ERR_MSG, x)
 	default:
 	}
-	if got, want := fmt.Sprint(ctx), "bucharest.BuchatrestContext"; got != want {
-		t.Errorf("NewContextWithOptions().String() = %q want %q", got, want)
-	}
+	verifyContextTypeName(t, ctx)
 }
 
 func TestNewContextWithOptionsWithNoAddtionalOptions(t *testing.T) {
@@ -55,12 +60,10 @@ func TestNewContextWithOptionsWithNoAddtionalOptions(t *testing.T) {
 	}
 	select {
 	case x := <-ctx.Done():
-		t.Errorf("<-c.Done() == %v want nothing (it should block)", x)
+		t.Errorf(CONTEXT_DONE_ERR_MSG, x)
 	default:
 	}
-	if got, want := fmt.Sprint(ctx), "bucharest.BuchatrestContext"; got != want {
-		t.Errorf("NewContextWithOptions().String() = %q want %q", got, want)
-	}
+	verifyContextTypeName(t, ctx)
 
 	utils.AssertPanic(t, func() { ctx.ENV() }, ErrNoENV)
 	utils.AssertPanic(t, func() { ctx.GORM() }, ErrNoGORM)
@@ -110,8 +113,8 @@ func TestNewContextWithOptionsWithAllAddtionalOptions(t *testing.T) {
 		t.Errorf("<-c.Done() == %v want nothing (it should block)", x)
 	default:
 	}
-	if got, want := fmt.Sprint(ctx), "bucharest.BuchatrestContext"; got != want {
-		t.Errorf("NewContextWithOptions().String() = %q want %q", got, want)
+	if contextTypeName := fmt.Sprint(ctx); contextTypeName != BUCHAREST_CONTEXT_TYPE_NAME {
+		t.Errorf("NewContextWithOptions().String() = %q want %q", contextTypeName, BUCHAREST_CONTEXT_TYPE_NAME)
 	}
 
 	assert.Same(t, env, ctx.ENV())
@@ -126,8 +129,7 @@ func TestNewContextWithOptionsWithAllAddtionalOptions(t *testing.T) {
 
 func TestUpdateContext(t *testing.T) {
 	// prepare env
-	envTempPath := "/tmp/.env"
-	tempEnvFile, err := os.Create(envTempPath)
+	tempEnvFile, err := os.Create(TEMP_ENV_PATH)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, tempEnvFile)
 
@@ -137,7 +139,7 @@ func TestUpdateContext(t *testing.T) {
 	err = tempEnvFile.Close()
 	assert.NoError(t, err)
 
-	env, err := NewENV(envTempPath)
+	env, err := NewENV(TEMP_ENV_PATH)
 	assert.NoError(t, err)
 	assert.NotNil(t, env)
 
@@ -150,7 +152,7 @@ func TestUpdateContext(t *testing.T) {
 		SQL:    &sql.DB{},
 		SQLX:   &sqlx.DB{},
 	})
-	err = os.Remove(envTempPath)
+	err = os.Remove(TEMP_ENV_PATH)
 	assert.NoError(t, err)
 
 	if ctx == nil {
@@ -158,16 +160,13 @@ func TestUpdateContext(t *testing.T) {
 	}
 	select {
 	case x := <-ctx.Done():
-		t.Errorf("<-c.Done() == %v want nothing (it should block)", x)
+		t.Errorf(CONTEXT_DONE_ERR_MSG, x)
 	default:
 	}
-	if got, want := fmt.Sprint(ctx), "bucharest.BuchatrestContext"; got != want {
-		t.Errorf("NewContextWithOptions().String() = %q want %q", got, want)
-	}
+	verifyContextTypeName(t, ctx)
 
 	// prepare env
-	envTempPath = "/tmp/.env"
-	tempEnvFile, err = os.Create(envTempPath)
+	tempEnvFile, err = os.Create(TEMP_ENV_PATH)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, tempEnvFile)
 
@@ -177,7 +176,7 @@ func TestUpdateContext(t *testing.T) {
 	err = tempEnvFile.Close()
 	assert.NoError(t, err)
 
-	newENV, err := NewENV(envTempPath)
+	newENV, err := NewENV(TEMP_ENV_PATH)
 	assert.NoError(t, err)
 	assert.NotNil(t, newENV)
 
@@ -188,7 +187,7 @@ func TestUpdateContext(t *testing.T) {
 	sqlx := &sqlx.DB{}
 
 	assert.NotSame(t, newENV, ctx.ENV())
-	err = os.Remove(envTempPath)
+	err = os.Remove(TEMP_ENV_PATH)
 	assert.NoError(t, err)
 	assert.NotSame(t, gorm, ctx.GORM())
 	assert.NotSame(t, logrus, ctx.Log())
