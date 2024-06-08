@@ -7,6 +7,8 @@ import (
 )
 
 func TestAssertPanic(t *testing.T) {
-	AssertPanic(t, func() {}, nil)
-	AssertPanic(t, func() { panic("") }, "")
+	AssertPanic(t, func() {
+		// Do nothing
+	}, nil)
+	AssertPanic(t, func() { panic("Panic!") }, "Panic!")
 }
