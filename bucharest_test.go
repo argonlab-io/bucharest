@@ -85,29 +85,20 @@ func TestNewContextWithOptionsWithAllAddtionalOptions(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, env)
 
-	// prepare Gorm
 	gorm := &gorm.DB{}
-
-	// Prepare Logrus
 	logrus := &logrus.Logger{}
-
-	// Prepare Redis
-	redis_ := &redis.Client{}
-
-	// Prepare sql
-	sql_ := &sql.DB{}
-
-	// Prepare sqlx
-	sqlx_ := &sqlx.DB{}
+	redis := &redis.Client{}
+	sql := &sql.DB{}
+	sqlx := &sqlx.DB{}
 
 	ctx := NewContextWithOptions(&ContextOptions{
 		Parent: context.Background(),
 		ENV:    env,
 		GORM:   gorm,
 		Logrus: logrus,
-		Redis:  redis_,
-		SQL:    sql_,
-		SQLX:   sqlx_,
+		Redis:  redis,
+		SQL:    sql,
+		SQLX:   sqlx,
 	})
 	if ctx == nil {
 		t.Fatalf("NewContext returned nil")
@@ -126,9 +117,9 @@ func TestNewContextWithOptionsWithAllAddtionalOptions(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Same(t, gorm, ctx.GORM())
 	assert.Same(t, logrus, ctx.Log())
-	assert.Same(t, redis_, ctx.Redis())
-	assert.Same(t, sql_, ctx.SQL())
-	assert.Same(t, sqlx_, ctx.SQLX())
+	assert.Same(t, redis, ctx.Redis())
+	assert.Same(t, sql, ctx.SQL())
+	assert.Same(t, sqlx, ctx.SQLX())
 }
 
 func TestUpdateContext(t *testing.T) {
@@ -188,45 +179,36 @@ func TestUpdateContext(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, newENV)
 
-	// prepare Gorm
-	gorm_ := &gorm.DB{}
-
-	// Prepare Logrus
-	logrus_ := &logrus.Logger{}
-
-	// Prepare Redis
-	redis_ := &redis.Client{}
-
-	// Prepare sql
-	sql_ := &sql.DB{}
-
-	// Prepare sqlx
-	sqlx_ := &sqlx.DB{}
+	gorm := &gorm.DB{}
+	logrus := &logrus.Logger{}
+	redis := &redis.Client{}
+	sql := &sql.DB{}
+	sqlx := &sqlx.DB{}
 
 	assert.NotSame(t, newENV, ctx.ENV())
 	err = os.Remove(envTempPath)
 	assert.NoError(t, err)
-	assert.NotSame(t, gorm_, ctx.GORM())
-	assert.NotSame(t, logrus_, ctx.Log())
-	assert.NotSame(t, redis_, ctx.Redis())
-	assert.NotSame(t, sql_, ctx.SQL())
-	assert.NotSame(t, sqlx_, ctx.SQLX())
+	assert.NotSame(t, gorm, ctx.GORM())
+	assert.NotSame(t, logrus, ctx.Log())
+	assert.NotSame(t, redis, ctx.Redis())
+	assert.NotSame(t, sql, ctx.SQL())
+	assert.NotSame(t, sqlx, ctx.SQLX())
 
 	ctx.Update(&ContextOptions{
 		ENV:    newENV,
-		GORM:   gorm_,
-		Logrus: logrus_,
-		Redis:  redis_,
-		SQL:    sql_,
-		SQLX:   sqlx_,
+		GORM:   gorm,
+		Logrus: logrus,
+		Redis:  redis,
+		SQL:    sql,
+		SQLX:   sqlx,
 	})
 
 	assert.Same(t, newENV, ctx.ENV())
 	assert.NoError(t, err)
-	assert.Same(t, gorm_, ctx.GORM())
-	assert.Same(t, logrus_, ctx.Log())
-	assert.Same(t, redis_, ctx.Redis())
-	assert.Same(t, sql_, ctx.SQL())
-	assert.Same(t, sqlx_, ctx.SQLX())
+	assert.Same(t, gorm, ctx.GORM())
+	assert.Same(t, logrus, ctx.Log())
+	assert.Same(t, redis, ctx.Redis())
+	assert.Same(t, sql, ctx.SQL())
+	assert.Same(t, sqlx, ctx.SQLX())
 
 }

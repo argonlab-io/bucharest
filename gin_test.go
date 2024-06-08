@@ -52,10 +52,10 @@ func getCallingPath(method string, handler gin.HandlerFunc, middlewares ...gin.H
 		}
 	}
 	var err error
-	avaiable_port := fmt.Sprint(DEFAULT_TEST_PORT)
+	avaiablePort := fmt.Sprint(DEFAULT_TEST_PORT)
 	DEFAULT_TEST_PORT++
-	go func() { err = g.Run(fmt.Sprintf(":%s", avaiable_port)) }()
-	return fmt.Sprintf("http://0.0.0.0:%s/%s", avaiable_port, path), err
+	go func() { err = g.Run(fmt.Sprintf(":%s", avaiablePort)) }()
+	return fmt.Sprintf("http://0.0.0.0:%s/%s", avaiablePort, path), err
 }
 
 func getCallingPathWithParamterAndQuery(handler gin.HandlerFunc, param string, query map[string]string, middlewares ...gin.HandlerFunc) (string, error) {
@@ -73,10 +73,10 @@ func getCallingPathWithParamterAndQuery(handler gin.HandlerFunc, param string, q
 	}
 	g.GET(endpoint, handler)
 	var err error
-	avaiable_port := fmt.Sprint(DEFAULT_TEST_PORT)
+	avaiablePort := fmt.Sprint(DEFAULT_TEST_PORT)
 	DEFAULT_TEST_PORT++
-	go func() { err = g.Run(fmt.Sprintf(":%s", avaiable_port)) }()
-	url := fmt.Sprintf("http://0.0.0.0:%s/%s/%s", avaiable_port, path, param)
+	go func() { err = g.Run(fmt.Sprintf(":%s", avaiablePort)) }()
+	url := fmt.Sprintf("http://0.0.0.0:%s/%s/%s", avaiablePort, path, param)
 	if param == "" {
 		url = strings.TrimSuffix(url, "/")
 	}
@@ -180,8 +180,8 @@ func TestHandleFullPath(t *testing.T) {
 	var path string
 	handler := func(ctx HTTPContext) HTTPError {
 		split := strings.Split(path, "/")
-		handler_path := split[len(split)-1]
-		assert.Equal(t, fmt.Sprintf("/%s", handler_path), ctx.FullPath())
+		handlerPath := split[len(split)-1]
+		assert.Equal(t, fmt.Sprintf("/%s", handlerPath), ctx.FullPath())
 		ctx.Status(http.StatusNoContent)
 		return nil
 	}
@@ -209,9 +209,9 @@ func TestIP(t *testing.T) {
 	var path string
 	handler := func(ctx HTTPContext) HTTPError {
 		assert.Equal(t, ctx.Gin().ClientIP(), ctx.ClientIP())
-		remote_ip := ctx.RemoteIP()
-		expected_remote_ip := ctx.Gin().RemoteIP()
-		assert.Equal(t, remote_ip, expected_remote_ip)
+		remoteIp := ctx.RemoteIP()
+		expectedRemoteIp := ctx.Gin().RemoteIP()
+		assert.Equal(t, remoteIp, expectedRemoteIp)
 		ctx.Status(http.StatusNoContent)
 		return nil
 	}

@@ -21,19 +21,19 @@ func (je *jsonError) Error() string {
 }
 
 func TestNewBadRequestError(t *testing.T) {
-	test_err := errors.New("fooooooooooo")
-	httpError := NewBadRequestError(test_err)
+	testErr := errors.New("fooooooooooo")
+	httpError := NewBadRequestError(testErr)
 	assert.NotEmpty(t, httpError)
-	assert.True(t, errors.Is(httpError.OriginalError(), test_err))
+	assert.True(t, errors.Is(httpError.OriginalError(), testErr))
 }
 
 func TestNewBadRequestErrorWithJSON(t *testing.T) {
-	test_err := &jsonError{
+	testErr := &jsonError{
 		"foo": "bar",
 	}
-	httpError := NewBadRequestError(test_err)
+	httpError := NewBadRequestError(testErr)
 	assert.NotEmpty(t, httpError)
-	assert.ErrorIs(t, httpError.OriginalError(), test_err)
+	assert.ErrorIs(t, httpError.OriginalError(), testErr)
 	serializable := httpError.GetJSON()
 	mapper := make(map[string]interface{})
 	err := utils.JSONMapper(serializable, &mapper)
@@ -41,7 +41,7 @@ func TestNewBadRequestErrorWithJSON(t *testing.T) {
 	jerr := &jsonError{}
 	err = utils.JSONMapper(mapper["message"], jerr)
 	assert.NoError(t, err)
-	assert.Equal(t, jerr, test_err)
+	assert.Equal(t, jerr, testErr)
 }
 
 func TestNewBadRequestErrorWithFromValidateError(t *testing.T) {
