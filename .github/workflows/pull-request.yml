@@ -29,5 +29,5 @@ jobs:
         args: >
           -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
           -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
-          -Dsonar.pullrequest.branch=${{ github.head_ref }}
+          -Dsonar.pullrequest.branch=${{ env.GITHUB_HEAD_REF }}
         
