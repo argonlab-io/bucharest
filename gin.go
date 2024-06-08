@@ -3,7 +3,6 @@ package bucharest
 import (
 	"io"
 	"mime/multipart"
-	"net"
 	"net/http"
 	"os"
 	"time"
@@ -88,7 +87,7 @@ func (r *ginRequest) ClientIP() string {
 	return r.gin.ClientIP()
 }
 
-func (r *ginRequest) RemoteIP() (net.IP, bool) {
+func (r *ginRequest) RemoteIP() string {
 	return r.gin.RemoteIP()
 }
 

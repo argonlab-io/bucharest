@@ -3,7 +3,6 @@ package bucharest
 import (
 	"io"
 	"mime/multipart"
-	"net"
 	"net/http"
 	"time"
 
@@ -23,7 +22,7 @@ type HTTPContext interface {
 	ContentType() string
 	Cookie(name string) (string, error)
 	ClientIP() string
-	RemoteIP() (net.IP, bool)
+	RemoteIP() string
 	GetHeader(key string) string
 	GetRawData() ([]byte, error)
 	IsWebsocket() bool
