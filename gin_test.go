@@ -209,10 +209,9 @@ func TestIP(t *testing.T) {
 	var path string
 	handler := func(ctx HTTPContext) HTTPError {
 		assert.Equal(t, ctx.Gin().ClientIP(), ctx.ClientIP())
-		remote_ip, trust := ctx.RemoteIP()
-		expected_remote_ip, expected_trust := ctx.Gin().RemoteIP()
+		remote_ip := ctx.RemoteIP()
+		expected_remote_ip := ctx.Gin().RemoteIP()
 		assert.Equal(t, remote_ip, expected_remote_ip)
-		assert.Equal(t, trust, expected_trust)
 		ctx.Status(http.StatusNoContent)
 		return nil
 	}
