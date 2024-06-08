@@ -16,10 +16,12 @@ import (
 	"gorm.io/gorm"
 )
 
+const FOUND_NULL_CONTEXT_ERR_MSG = "Found null context."
+
 func TestNewContextWithOptions(t *testing.T) {
 	ctx := NewContextWithOptions(nil)
 	if ctx == nil {
-		t.Fatalf("NewContext returned nil")
+		t.Fatal(FOUND_NULL_CONTEXT_ERR_MSG)
 	}
 	select {
 	case x := <-ctx.Done():
@@ -34,7 +36,7 @@ func TestNewContextWithOptions(t *testing.T) {
 func TestNewContextWithOptionsFromParentContext(t *testing.T) {
 	ctx := NewContextWithOptions(&ContextOptions{Parent: context.Background()})
 	if ctx == nil {
-		t.Fatalf("NewContext returned nil")
+		t.Fatal(FOUND_NULL_CONTEXT_ERR_MSG)
 	}
 	select {
 	case x := <-ctx.Done():
@@ -49,7 +51,7 @@ func TestNewContextWithOptionsFromParentContext(t *testing.T) {
 func TestNewContextWithOptionsWithNoAddtionalOptions(t *testing.T) {
 	ctx := NewContextWithOptions(&ContextOptions{Parent: context.Background()})
 	if ctx == nil {
-		t.Fatalf("NewContext returned nil")
+		t.Fatal(FOUND_NULL_CONTEXT_ERR_MSG)
 	}
 	select {
 	case x := <-ctx.Done():
@@ -101,7 +103,7 @@ func TestNewContextWithOptionsWithAllAddtionalOptions(t *testing.T) {
 		SQLX:   sqlx,
 	})
 	if ctx == nil {
-		t.Fatalf("NewContext returned nil")
+		t.Fatal(FOUND_NULL_CONTEXT_ERR_MSG)
 	}
 	select {
 	case x := <-ctx.Done():
@@ -152,7 +154,7 @@ func TestUpdateContext(t *testing.T) {
 	assert.NoError(t, err)
 
 	if ctx == nil {
-		t.Fatalf("NewContext returned nil")
+		t.Fatal(FOUND_NULL_CONTEXT_ERR_MSG)
 	}
 	select {
 	case x := <-ctx.Done():
