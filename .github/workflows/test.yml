@@ -1,6 +1,6 @@
-name: pull_request
+name: test
 
-on: [pull_request]
+on: [push]
 
 jobs:
   quality-gate:
@@ -27,5 +27,3 @@ jobs:
           projectBaseDir: .
           args: >
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
-            -Dsonar.pullrequest.branch=${{ github.head_ref }}
