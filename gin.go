@@ -17,7 +17,6 @@ func defaultHttpContextWithGin(ctx Context, g *gin.Context) *httpContextWithGin 
 	return &httpContextWithGin{
 		Context:             ctx,
 		gin:                 g,
-		ginHandlerInfo:      ginHandlerInfo{gin: g},
 		ginRequest:          ginRequest{gin: g},
 		ginHandlerControl:   ginHandlerControl{gin: g},
 		ginSetterAndGetter:  ginSetterAndGetter{gin: g},
@@ -30,18 +29,38 @@ func defaultHttpContextWithGin(ctx Context, g *gin.Context) *httpContextWithGin 
 	}
 }
 
-func NewGinHandlerFunc(ctx Context, handlerFunc HandlerFunc) gin.HandlerFunc {
-	return func(g *gin.Context) {
-		httpError := handlerFunc(defaultHttpContextWithGin(ctx, g))
-		if httpError != nil {
-			g.JSON(httpError.GetStatus(), httpError.GetJSON())
-		}
-	}
+type NewHandlerPayload struct {
+	Ctx  Context
+	Func HandlerFunc
+	Data map[string]any
+	Name *string
 }
 
-func NewGinHandlerFuncWithData(ctx Context, handlerFunc HandlerFuncWithData, data map[string]any) gin.HandlerFunc {
+func NewGinHandlerFunc(payload *NewHandlerPayload) gin.HandlerFunc {
+	if payload.Ctx == nil || payload.Func == nil {
+		panic("context or handler function is null")
+	}
+	if payload.Data == nil {
+		payload.Data = make(map[string]any)
+	}
+	var handlerNames []string
+	if payload.Ctx.Value("HandlerNames") == nil {
+		handlerNames = make([]string, 0)
+	} else {
+		handlerNames = payload.Ctx.Value("HandlerNames").([]string)
+	}
+
+	if payload.Name == nil {
+		unamedHandler := "UnamedHandler"
+		payload.Name = &unamedHandler
+	}
+	handlerNames = append(handlerNames, *payload.Name)
+
+	payload.Data["HandlerNames"] = handlerNames
+	UpdateContextValue(payload.Ctx, payload.Data)
+
 	return func(g *gin.Context) {
-		httpError := handlerFunc(defaultHttpContextWithGin(ctx, g), data)
+		httpError := payload.Func(defaultHttpContextWithGin(payload.Ctx, g))
 		if httpError != nil {
 			g.JSON(httpError.GetStatus(), httpError.GetJSON())
 		}
@@ -51,7 +70,6 @@ func NewGinHandlerFuncWithData(ctx Context, handlerFunc HandlerFuncWithData, dat
 type httpContextWithGin struct {
 	Context
 	gin *gin.Context
-	ginHandlerInfo
 	ginRequest
 	ginHandlerControl
 	ginSetterAndGetter
@@ -63,16 +81,13 @@ type httpContextWithGin struct {
 	ginResponseBody
 }
 
-type ginHandlerInfo struct {
-	gin *gin.Context
+func (ctx *httpContextWithGin) HandlerName() string {
+	handlerNames := ctx.HandlerNames()
+	return handlerNames[len(handlerNames)-1]
 }
 
-func (hi *ginHandlerInfo) HandlerName() string {
-	return hi.gin.HandlerName()
-}
-
-func (hi *ginHandlerInfo) HandlerNames() []string {
-	return hi.gin.HandlerNames()
+func (ctx *httpContextWithGin) HandlerNames() []string {
+	return ctx.Value("HandlerNames").([]string)
 }
 
 type ginRequest struct {
@@ -139,15 +154,15 @@ type ginSetterAndGetter struct {
 	gin *gin.Context
 }
 
-func (sg *ginSetterAndGetter) Get(key string) (interface{}, bool) {
+func (sg *ginSetterAndGetter) Get(key string) (any, bool) {
 	return sg.gin.Get(key)
 }
 
-func (sg *ginSetterAndGetter) Set(key string, value interface{}) {
+func (sg *ginSetterAndGetter) Set(key string, value any) {
 	sg.gin.Set(key, value)
 }
 
-func (sg *ginSetterAndGetter) MustGet(key string) interface{} {
+func (sg *ginSetterAndGetter) MustGet(key string) any {
 	return sg.gin.MustGet(key)
 }
 

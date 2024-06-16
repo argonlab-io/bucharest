@@ -28,7 +28,7 @@ func TestAddValuesToContext(t *testing.T) {
 	key2 := "key2"
 	value2 := 2
 
-	ctx = AddValuesToContext(NewContextWithOptions(&ContextOptions{Parent: ctx}), map[string]any{
+	ctx = UpdateContextValue(NewContextWithOptions(&ContextOptions{Parent: ctx}), map[string]any{
 		key1: value1,
 		key2: value2,
 	})
