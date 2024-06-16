@@ -136,5 +136,4 @@ type HTTPError interface {
 }
 
 type HandlerFunc func(HTTPContext) HTTPError
-type HandlerFuncWithData func(HTTPContext, map[string]any) HTTPError
 type HandlersChain []HandlerFunc
