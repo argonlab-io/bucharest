@@ -1,7 +1,6 @@
 package bucharest_test
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -66,10 +65,7 @@ func (ts *GinMiddlewareTestSuite) TestAbort() {
 	// Arrange
 	ctx := NewContextWithOptions(nil)
 	ts.Ctx = ctx
-	handler := func(ctx HTTPContext) HTTPError {
-		assert.NoError(ts.T(), fmt.Errorf("this part should never be reached."))
-		return nil
-	}
+	handler := ts.createUnreachableHandler()
 
 	middleware := func(ctx HTTPContext) HTTPError {
 		ctx.Abort()
@@ -109,10 +105,7 @@ func (ts *GinMiddlewareTestSuite) TestAbortWithStatus() {
 	// Arrange
 	ctx := NewContextWithOptions(nil)
 	ts.Ctx = ctx
-	handler := func(ctx HTTPContext) HTTPError {
-		assert.NoError(ts.T(), fmt.Errorf("this part should never be reached."))
-		return nil
-	}
+	handler := ts.createUnreachableHandler()
 
 	middleware := func(ctx HTTPContext) HTTPError {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
@@ -144,6 +137,53 @@ func (ts *GinMiddlewareTestSuite) TestAbortWithStatus() {
 		ts.Paths[0],
 		nil,
 		http.StatusInternalServerError,
+	)
+}
+
+func (ts *GinMiddlewareTestSuite) TestAbortWithStatusJSON() {
+	// Arrange
+	ctx := NewContextWithOptions(nil)
+	ts.Ctx = ctx
+	handler := ts.createUnreachableHandler()
+
+	middleware := func(ctx HTTPContext) HTTPError {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, map[string]any{
+			"message": "foobar",
+		})
+		assert.True(ts.T(), ctx.IsAborted())
+		return nil
+	}
+	ts.createTestServer(&testServerOption{
+		handlers: []*testHandlers{
+			{
+				function: NewGinHandlerFunc(&NewHandlerPayload{
+					Ctx:  ctx,
+					Func: handler,
+				}),
+				method: http.MethodGet,
+			},
+		},
+		middlewares: []gin.HandlerFunc{
+			NewGinHandlerFunc(&NewHandlerPayload{
+				Ctx:  ctx,
+				Func: middleware,
+			}),
+		}})
+
+	ts.startTestServer()
+
+	// Act and Assert
+	ts.HTTPStatusCode(ts.Server.Handler.ServeHTTP,
+		http.MethodGet,
+		ts.Paths[0],
+		nil,
+		http.StatusInternalServerError,
+	)
+	ts.HTTPBodyContains(ts.Server.Handler.ServeHTTP,
+		http.MethodGet,
+		ts.Paths[0],
+		nil,
+		"{\"message\":\"foobar\"}",
 	)
 }
 

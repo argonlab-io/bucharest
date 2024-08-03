@@ -142,7 +142,7 @@ func (hc *ginHandlerControl) Abort() {
 	hc.gin.Abort()
 }
 
-func (hc *ginHandlerControl) AbortWithStatusJSON(code int, jsonObj interface{}) {
+func (hc *ginHandlerControl) AbortWithStatusJSON(code int, jsonObj any) {
 	hc.gin.AbortWithStatusJSON(code, jsonObj)
 }
 

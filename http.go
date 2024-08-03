@@ -31,7 +31,7 @@ type HTTPContext interface {
 	Next()
 	IsAborted() bool
 	Abort()
-	AbortWithStatusJSON(code int, jsonObj interface{})
+	AbortWithStatusJSON(code int, jsonObj any)
 	AbortWithStatus(code int)
 
 	// Setter and Getter

@@ -14,10 +14,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type binderTest struct {
-	Foo string `form:"foo" json:"foo" xml:"foo"  binding:"required"`
-}
-
 type GinTestSuite struct {
 	suite.Suite
 	Port   int
@@ -126,4 +122,12 @@ func (ts *GinTestSuite) assertOkResponse(resp *http.Response, err error) {
 	assert.NoError(ts.T(), err)
 	assert.NotNil(ts.T(), resp)
 	assert.Equal(ts.T(), http.StatusOK, resp.StatusCode)
+}
+
+func (ts *GinTestSuite) createUnreachableHandler() HandlerFunc {
+	handler := func(ctx HTTPContext) HTTPError {
+		assert.NoError(ts.T(), fmt.Errorf("this part should never be reached."))
+		return nil
+	}
+	return handler
 }
