@@ -36,7 +36,6 @@ func (ts *GinTestSuite) SetupTest() {
 }
 
 func (suite *GinTestSuite) TearDownTest() {
-
 	suite.shutdownTestServer()
 }
 
