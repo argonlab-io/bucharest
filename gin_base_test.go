@@ -3,6 +3,7 @@ package bucharest_test
 import (
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"time"
 
@@ -16,23 +17,16 @@ import (
 
 type GinTestSuite struct {
 	suite.Suite
-	Port   int
-	Server *http.Server
-	Paths  []string
-	Ctx    Context
+	Port     int
+	Server   *http.Server
+	Listener *net.Listener
+	Paths    []string
+	Ctx      Context
 }
 
 type GinTestHandler struct {
 	function gin.HandlerFunc
 	method   string
-}
-
-func (ts *GinTestSuite) SetupSuite() {
-	ts.Port = 9000
-}
-
-func (ts *GinTestSuite) SetupTest() {
-	ts.Port++
 }
 
 func (suite *GinTestSuite) TearDownTest() {
@@ -57,6 +51,11 @@ func (ts *GinTestSuite) createTestServer(option *testServerOption) {
 	}
 
 	paths := make([]string, 0)
+
+	listener, err := net.Listen("tcp", ":0")
+	assert.NoError(ts.T(), err)
+	ts.Port = listener.Addr().(*net.TCPAddr).Port
+	ts.Listener = &listener
 	port := fmt.Sprint(ts.Port)
 
 	for _, handler := range option.handlers {
@@ -89,7 +88,7 @@ func (ts *GinTestSuite) createTestServer(option *testServerOption) {
 
 func (ts *GinTestSuite) startTestServer() {
 	go func() {
-		if err := ts.Server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+		if err := ts.Server.Serve(*ts.Listener); !errors.Is(err, http.ErrServerClosed) {
 			assert.NoError(ts.T(), err)
 		}
 	}()
