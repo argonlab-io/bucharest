@@ -29,7 +29,7 @@ func (ts *GinMiddlewareTestSuite) TestNext() {
 		return nil
 	}
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
+		handlers: []*GinTestHandler{
 			{
 				function: NewGinHandlerFunc(&NewHandlerPayload{
 					Ctx:  ctx,
@@ -73,14 +73,8 @@ func (ts *GinMiddlewareTestSuite) TestAbort() {
 		return nil
 	}
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
-			{
-				function: NewGinHandlerFunc(&NewHandlerPayload{
-					Ctx:  ctx,
-					Func: handler,
-				}),
-				method: http.MethodGet,
-			},
+		handlers: []*GinTestHandler{
+			ts.createGetTestHandler(ctx, handler),
 		},
 		middlewares: []gin.HandlerFunc{
 			NewGinHandlerFunc(&NewHandlerPayload{
@@ -113,7 +107,7 @@ func (ts *GinMiddlewareTestSuite) TestAbortWithStatus() {
 		return nil
 	}
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
+		handlers: []*GinTestHandler{
 			{
 				function: NewGinHandlerFunc(&NewHandlerPayload{
 					Ctx:  ctx,
@@ -154,7 +148,7 @@ func (ts *GinMiddlewareTestSuite) TestAbortWithStatusJSON() {
 		return nil
 	}
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
+		handlers: []*GinTestHandler{
 			{
 				function: NewGinHandlerFunc(&NewHandlerPayload{
 					Ctx:  ctx,

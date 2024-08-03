@@ -22,6 +22,11 @@ type GinTestSuite struct {
 	Ctx    Context
 }
 
+type GinTestHandler struct {
+	function gin.HandlerFunc
+	method   string
+}
+
 func (ts *GinTestSuite) SetupSuite() {
 	ts.Port = 9000
 }
@@ -35,13 +40,8 @@ func (suite *GinTestSuite) TearDownTest() {
 	suite.shutdownTestServer()
 }
 
-type testHandlers struct {
-	function gin.HandlerFunc
-	method   string
-}
-
 type testServerOption struct {
-	handlers    []*testHandlers
+	handlers    []*GinTestHandler
 	middlewares []gin.HandlerFunc
 }
 
@@ -130,4 +130,26 @@ func (ts *GinTestSuite) createUnreachableHandler() HandlerFunc {
 		return nil
 	}
 	return handler
+}
+
+func (ts *GinTestSuite) createGetTestHandler(ctx Context, handler HandlerFunc) *GinTestHandler {
+	return &GinTestHandler{
+
+		function: NewGinHandlerFunc(&NewHandlerPayload{
+			Ctx:  ctx,
+			Func: handler,
+		}),
+		method: http.MethodGet,
+	}
+}
+
+func (ts *GinTestSuite) createPostTestHandler(ctx Context, handler HandlerFunc) *GinTestHandler {
+	return &GinTestHandler{
+
+		function: NewGinHandlerFunc(&NewHandlerPayload{
+			Ctx:  ctx,
+			Func: handler,
+		}),
+		method: http.MethodPost,
+	}
 }

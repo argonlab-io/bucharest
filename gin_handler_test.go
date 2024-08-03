@@ -28,15 +28,7 @@ func (ts *GinHandlerTestSuite) TestGinHandler() {
 		return nil
 	}
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
-			{
-				function: NewGinHandlerFunc(&NewHandlerPayload{
-					Ctx:  ctx,
-					Func: handler,
-				}),
-				method: http.MethodGet,
-			},
-		}})
+		handlers: []*GinTestHandler{ts.createGetTestHandler(ctx, handler)}})
 
 	ts.startTestServer()
 	ts.assertServerHealthy()
@@ -57,7 +49,7 @@ func (ts *GinHandlerTestSuite) TestNewGinHandlerFuncWithData() {
 		return nil
 	}
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
+		handlers: []*GinTestHandler{
 			{
 				function: NewGinHandlerFunc(&NewHandlerPayload{
 					Ctx:  ctx,
@@ -93,7 +85,7 @@ func (ts *GinHandlerTestSuite) TestHandlerInfo() {
 
 	handlerName := "MyHandler"
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
+		handlers: []*GinTestHandler{
 			{
 				function: NewGinHandlerFunc(&NewHandlerPayload{
 					Ctx:  ctx,
@@ -134,17 +126,9 @@ func (ts *GinHandlerTestSuite) TestFullPath() {
 		ctx.Status(http.StatusNoContent)
 		return nil
 	}
-
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
-			{
-				function: NewGinHandlerFunc(&NewHandlerPayload{
-					Ctx:  ctx,
-					Func: handler,
-				}),
-				method: http.MethodGet,
-			},
-		}})
+		handlers: []*GinTestHandler{ts.createGetTestHandler(ctx, handler)}})
+
 	path = ts.Paths[0]
 
 	ts.startTestServer()
@@ -172,15 +156,7 @@ func (ts *GinHandlerTestSuite) TestIp() {
 	}
 
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
-			{
-				function: NewGinHandlerFunc(&NewHandlerPayload{
-					Ctx:  ctx,
-					Func: handler,
-				}),
-				method: http.MethodGet,
-			},
-		}})
+		handlers: []*GinTestHandler{ts.createGetTestHandler(ctx, handler)}})
 
 	ts.startTestServer()
 	ts.assertServerHealthy()
@@ -206,15 +182,7 @@ func (ts *GinHandlerTestSuite) TestCookie() {
 	}
 
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
-			{
-				function: NewGinHandlerFunc(&NewHandlerPayload{
-					Ctx:  ctx,
-					Func: handler,
-				}),
-				method: http.MethodGet,
-			},
-		}})
+		handlers: []*GinTestHandler{ts.createGetTestHandler(ctx, handler)}})
 
 	ts.startTestServer()
 	ts.assertServerHealthy()
@@ -242,15 +210,7 @@ func (ts *GinHandlerTestSuite) TestContentType() {
 	}
 
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
-			{
-				function: NewGinHandlerFunc(&NewHandlerPayload{
-					Ctx:  ctx,
-					Func: handler,
-				}),
-				method: http.MethodGet,
-			},
-		}})
+		handlers: []*GinTestHandler{ts.createGetTestHandler(ctx, handler)}})
 
 	ts.startTestServer()
 	ts.assertServerHealthy()
@@ -278,15 +238,7 @@ func (ts *GinHandlerTestSuite) TestHeaders() {
 	}
 
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
-			{
-				function: NewGinHandlerFunc(&NewHandlerPayload{
-					Ctx:  ctx,
-					Func: handler,
-				}),
-				method: http.MethodGet,
-			},
-		}})
+		handlers: []*GinTestHandler{ts.createGetTestHandler(ctx, handler)}})
 
 	ts.startTestServer()
 	ts.assertServerHealthy()
@@ -320,15 +272,7 @@ func (ts *GinHandlerTestSuite) TestRawData() {
 	}
 
 	ts.createTestServer(&testServerOption{
-		handlers: []*testHandlers{
-			{
-				function: NewGinHandlerFunc(&NewHandlerPayload{
-					Ctx:  ctx,
-					Func: handler,
-				}),
-				method: http.MethodPost,
-			},
-		}})
+		handlers: []*GinTestHandler{ts.createPostTestHandler(ctx, handler)}})
 
 	ts.startTestServer()
 	ts.assertServerHealthy()
