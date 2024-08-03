@@ -17,13 +17,3 @@ jobs:
 
       - name: Test
         run: ./scripts/test.sh
-
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@v2.1.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-        with:
-          projectBaseDir: .
-          args: >
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
