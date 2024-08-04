@@ -31,13 +31,13 @@ type HTTPContext interface {
 	Next()
 	IsAborted() bool
 	Abort()
-	AbortWithStatusJSON(code int, jsonObj interface{})
+	AbortWithStatusJSON(code int, jsonObj any)
 	AbortWithStatus(code int)
 
 	// Setter and Getter
-	Get(key string) (interface{}, bool)
-	Set(key string, value interface{})
-	MustGet(key string) interface{}
+	Get(key string) (any, bool)
+	Set(key string, value any)
+	MustGet(key string) any
 	GetString(key string) (s string)
 	GetBool(key string) (b bool)
 	GetInt(key string) (i int)
@@ -136,5 +136,4 @@ type HTTPError interface {
 }
 
 type HandlerFunc func(HTTPContext) HTTPError
-type HandlerFuncWithData func(HTTPContext, map[string]any) HTTPError
 type HandlersChain []HandlerFunc

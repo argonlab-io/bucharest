@@ -30,7 +30,7 @@ var ErrNoRedis = errors.New("*redis.Client is not present in this context")
 var ErrNoSQL = errors.New("*sql.DB is not present in this context")
 var ErrNoSQLX = errors.New("*sqlx.DB is not present in this context")
 
-func AddValuesToContext(ctx Context, values map[string]any) Context {
+func UpdateContextValue(ctx Context, values map[string]any) Context {
 	for key, value := range values {
 		ctx.SetValue(key, value)
 	}
